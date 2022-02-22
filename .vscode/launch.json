@@ -1,0 +1,47 @@
+// AUTOMATICALLY GENERATED FILE. PLEASE DO NOT MODIFY IT MANUALLY
+//
+// PIO Unified Debugger
+//
+// Documentation: https://docs.platformio.org/page/plus/debugging.html
+// Configuration: https://docs.platformio.org/page/projectconf/section_env_debug.html
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug",
+            "executable": "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/.pio/build/mySTM32F030C8/firmware.elf",
+            "projectEnvName": "mySTM32F030C8",
+            "toolchainBinDir": "/Users/samuelgao/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "svdPath": "/Users/samuelgao/.platformio/platforms/ststm32/misc/svd/STM32F030.svd",
+            "preLaunchTask": {
+                "type": "PlatformIO",
+                "task": "Pre-Debug"
+            }
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug (skip Pre-Debug)",
+            "executable": "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/.pio/build/mySTM32F030C8/firmware.elf",
+            "projectEnvName": "mySTM32F030C8",
+            "toolchainBinDir": "/Users/samuelgao/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "svdPath": "/Users/samuelgao/.platformio/platforms/ststm32/misc/svd/STM32F030.svd"
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug (without uploading)",
+            "executable": "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/.pio/build/mySTM32F030C8/firmware.elf",
+            "projectEnvName": "mySTM32F030C8",
+            "toolchainBinDir": "/Users/samuelgao/.platformio/packages/toolchain-gccarmnoneeabi/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "svdPath": "/Users/samuelgao/.platformio/platforms/ststm32/misc/svd/STM32F030.svd",
+            "loadMode": "manual"
+        }
+    ]
+}

@@ -1,0 +1,100 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/include",
+                "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Include",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/STM32F0xx_HAL_Driver/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/STM32F0xx_HAL_Driver/Src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/DSP/Include",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/l3gd20",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/hx8347d",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/stlm75",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/spfd5408",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/st7735",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/Common",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/i3g4250d",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Adafruit_Shield",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Utilities/CPU",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Utilities/Log",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Utilities/Fonts",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Core/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Core/Src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/AUDIO/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/AUDIO/Src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/HID/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/HID/Src",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc",
+                "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/include",
+                    "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Include",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/STM32F0xx_HAL_Driver/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/STM32F0xx_HAL_Driver/Src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/DSP/Include",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/l3gd20",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/hx8347d",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/stlm75",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/spfd5408",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/st7735",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/Common",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Components/i3g4250d",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/BSP/Adafruit_Shield",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Utilities/CPU",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Utilities/Log",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Utilities/Fonts",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Core/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Core/Src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/AUDIO/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/AUDIO/Src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/HID/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/HID/Src",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc",
+                    "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=50205",
+                "STM32F030x8",
+                "F0",
+                "USE_HAL_DRIVER",
+                "F_CPU=48000000L",
+                ""
+            ],
+            "compilerPath": "/Users/samuelgao/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc",
+            "compilerArgs": [
+                "-mthumb",
+                "-mcpu=cortex-m0",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}
