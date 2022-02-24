@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -24,7 +24,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+// #include <stdio.h>
+// #include <string.h>
+#include "func.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,13 +40,25 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+#define h_rs485 huart1
+#define h_uart huart2
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+enum
+{
+  DI1_TRIGGED,
+  DI2_TRIGGED,
+  DI3_TRIGGED,
+  DI4_TRIGGED,
+} sys_state;
 
+uint8_t rs485_rx_cnt = 0;
+uint8_t aRxBuffer;
+uint8_t RxBuffer[256];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,6 +79,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  uint32_t _timeout_100ms = 0, _timeout_1s = 0;
 
   /* USER CODE END 1 */
 
@@ -91,6 +106,8 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -100,6 +117,25 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // 100ms
+    if ((HAL_GetTick() - _timeout_100ms) >= 100)
+    {
+      _timeout_100ms = HAL_GetTick();
+
+      Update_State();
+    }
+
+    // 1s
+    if ((HAL_GetTick() - _timeout_1s) >= 1000)
+    {
+      _timeout_1s = HAL_GetTick();
+
+      Run();
+
+      HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
+
+      // HAL_UART_Transmit(&h_rs485, "123456789", 9, 0xffff);
+    }
   }
   /* USER CODE END 3 */
 }
@@ -122,7 +158,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL12;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL4;
   RCC_OscInitStruct.PLL.PREDIV = RCC_PREDIV_DIV1;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -133,10 +169,10 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -150,6 +186,57 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  UNUSED(GPIO_Pin);
+
+  if (GPIO_Pin == DI_1_Pin) {
+    sys_state = DI1_TRIGGED;
+  }
+  else if (GPIO_Pin == DI_2_Pin) {
+    sys_state = DI2_TRIGGED;
+  }
+  else if (GPIO_Pin == DI_3_Pin) {
+    sys_state = DI3_TRIGGED;
+  }
+  else if (GPIO_Pin == DI_4_Pin) {
+    sys_state = DI4_TRIGGED;
+  }
+
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  /* NOTE : This function should not be modified, when the callback is needed,
+            the HAL_UART_RxCpltCallback can be implemented in the user file
+   */
+  
+  if(huart == &h_rs485) {
+
+    // 如果溢出了
+    if(rs485_rx_cnt >= 255){
+      rs485_rx_cnt = 0;
+      memset(RxBuffer, 0x00, sizeof(RxBuffer));
+      uint8_t _buff[] = "over buff size";
+      HAL_UART_Transmit(&h_rs485, (uint8_t *)_buff, sizeof(_buff), 0xffff);
+    }
+    else{
+      RxBuffer[rs485_rx_cnt++] = aRxBuffer; // 接受数据转存
+      
+      if((RxBuffer[rs485_rx_cnt-1] == 0x0A) && (RxBuffer[rs485_rx_cnt-2] == 0x0d)){
+        HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
+        while ( HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
+        rs485_rx_cnt = 0;
+        memset(RxBuffer, 0x00, sizeof(RxBuffer));
+      }
+    }
+    HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
+  }
+}
 
 /* USER CODE END 4 */
 

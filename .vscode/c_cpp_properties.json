@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/include",
-                "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/src",
+                "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/Core/Inc",
+                "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/Core/Src",
                 "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Include",
                 "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
                 "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/STM32F0xx_HAL_Driver/Inc",
@@ -45,8 +45,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/include",
-                    "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/src",
+                    "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/Core/Inc",
+                    "/Users/samuelgao/Desktop/works/McuPrg/prgNewWMR/Core/Src",
                     "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Include",
                     "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/CMSIS/Device/ST/STM32F0xx/Include",
                     "/Users/samuelgao/.platformio/packages/framework-stm32cubef0/Drivers/STM32F0xx_HAL_Driver/Inc",
