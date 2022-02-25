@@ -73,6 +73,9 @@ uint8_t RxBuffer[256];
 
 PARA para;
 FILTER filter;
+CH_STATE ch_state[4];
+CH_STATE pwr_check_state;
+uint8_t pwr_check_filter;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -126,7 +129,7 @@ int main(void)
 
   HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
 
-  exit_trig_state = NO_TRIGGED;
+  // exit_trig_state = NO_TRIGGED;
 
   sys_state = SYS_INITIALED;
 
@@ -216,24 +219,48 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
   if (GPIO_Pin == PWR_CHECK_Pin)
   {
-    exit_trig_state = PWR_TRIGGED;
-    UserWrite();
+    if (pwr_check_state == READY)
+    {
+      pwr_check_state = TRIGGED;
+      HAL_UART_Transmit(&h_rs485, "PWR_TRIGGED", 12, 0xffff);
+      UserWrite();
+      // exit_trig_state = PWR_TRIGGED;
+    }
   }
   else if (GPIO_Pin == DI_1_Pin)
   {
-    exit_trig_state = DI1_TRIGGED;
+
+    if (ch_state[CH1] == READY)
+    {
+      ch_state[CH1] = TRIGGED;
+      HAL_UART_Transmit(&h_rs485, "DI1_TRIGGED", 12, 0xffff);
+    }
+    // exit_trig_state = DI1_TRIGGED;
   }
   else if (GPIO_Pin == DI_2_Pin)
   {
-    exit_trig_state = DI2_TRIGGED;
+    if (ch_state[CH2] == READY)
+    {
+      ch_state[CH2] = TRIGGED;
+      HAL_UART_Transmit(&h_rs485, "DI2_TRIGGED", 12, 0xffff);
+    }
+    // exit_trig_state = DI2_TRIGGED;
   }
   else if (GPIO_Pin == DI_3_Pin)
   {
-    exit_trig_state = DI3_TRIGGED;
+    if (ch_state[CH3] == READY)
+    {
+      ch_state[CH3] = TRIGGED;
+      HAL_UART_Transmit(&h_rs485, "DI3_TRIGGED", 12, 0xffff);
+    }
   }
   else if (GPIO_Pin == DI_4_Pin)
   {
-    exit_trig_state = DI4_TRIGGED;
+    if (ch_state[CH4] == READY)
+    {
+      ch_state[CH4] = TRIGGED;
+      HAL_UART_Transmit(&h_rs485, "DI4_TRIGGED", 12, 0xffff);
+    }
   }
 }
 

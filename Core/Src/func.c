@@ -6,6 +6,14 @@
 //
 extern PARA para;
 extern FILTER filter;
+extern CH_STATE ch_state[4];
+extern CH_STATE pwr_check_state;
+extern uint8_t pwr_check_filter;
+//
+
+
+// private functions define
+void DI_Filter(void);
 
 static uint16_t flash_addr_offset;
 
@@ -19,7 +27,31 @@ uint8_t get_flash_offset_address(void);
  * 
  */
 void Update_State(void){
-    ;
+    if(pwr_check_state == TRIGGED){
+        pwr_check_state = FILTERING;
+    }
+    if (ch_state[CH1] == TRIGGED)
+    {
+        para.ch[CH1]++;
+        ch_state[CH1] = FILTERING;
+    }
+    if (ch_state[CH2] == TRIGGED)
+    {
+        para.ch[CH2]++;
+        ch_state[CH2] = FILTERING;
+    }
+    if (ch_state[CH3] == TRIGGED)
+    {
+        para.ch[CH3]++;
+        ch_state[CH3] = FILTERING;
+    }
+    if (ch_state[CH4] == TRIGGED)
+    {
+        para.ch[CH4]++;
+        ch_state[CH4] = FILTERING;
+    }
+
+    DI_Filter();
 }
 
 /**
@@ -32,10 +64,32 @@ void Run(void){
 
 }
 
-/**
- * @brief 擦除参数保存页
- * 
- */
+void DI_Filter(void){
+
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        if (ch_state[i] == FILTERING){
+
+            if(filter.ch[i] > 0){
+                filter.ch[i]--;
+            }
+            else{
+                filter.ch[i] = FILTER_MAX;
+                ch_state[i] = READY;
+            }
+        }
+    }
+
+    if(pwr_check_state == FILTERING){
+        if(pwr_check_filter > 0){
+            pwr_check_filter--;
+        }else{
+            pwr_check_filter=FILTER_MAX;
+            pwr_check_state = READY;
+        }
+    }
+}
+
 void UserErase(void)
 {
     // HAL_StatusTypeDef halRet;
