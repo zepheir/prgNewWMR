@@ -22,7 +22,7 @@
 #include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -221,29 +221,6 @@ void USART2_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
-/**
- * @brief 重定向c库函数printf到DEBUG_USARTx
- * 
- * @param ch 
- * @param f 
- * @return int 
- */
-int fputc(int ch, FILE *f){
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xffff);
-  return ch;
-}
-
-/**
- * @brief 重新定向c库函数getchar, scanf到DEBUG_USARTx
- * 
- * @param f 
- * @return int 
- */
-int fgetc(FILE *f){
-  uint8_t ch = 0;
-  HAL_UART_Receive(&huart1, &ch, 1, 0xffff);
-  return ch;
-}
 
 /* USER CODE END 1 */
 

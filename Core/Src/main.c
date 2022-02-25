@@ -25,8 +25,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 // #include <stdio.h>
-// #include <string.h>
+#include <string.h>
 #include "func.h"
+#include "para.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,15 +51,27 @@
 /* USER CODE BEGIN PV */
 enum
 {
+  INI_STATE = 0,
+  SYS_INITIALED,
+  ERR_STATE = -1
+} sys_state;
+
+enum
+{
+  NO_TRIGGED = 0,
   DI1_TRIGGED,
   DI2_TRIGGED,
   DI3_TRIGGED,
   DI4_TRIGGED,
-} sys_state;
+  PWR_TRIGGED,
+} exit_trig_state;
 
 uint8_t rs485_rx_cnt = 0;
 uint8_t aRxBuffer;
 uint8_t RxBuffer[256];
+
+PARA para;
+FILTER filter;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,6 +93,8 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   uint32_t _timeout_100ms = 0, _timeout_1s = 0;
+
+  sys_state = INI_STATE;
 
   /* USER CODE END 1 */
 
@@ -106,7 +121,13 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  Para_Init();
+
   HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
+
+  exit_trig_state = NO_TRIGGED;
+
+  sys_state = SYS_INITIALED;
 
   /* USER CODE END 2 */
 
@@ -192,19 +213,27 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   UNUSED(GPIO_Pin);
 
-  if (GPIO_Pin == DI_1_Pin) {
-    sys_state = DI1_TRIGGED;
+  if (GPIO_Pin == PWR_CHECK_Pin)
+  {
+    exit_trig_state = PWR_TRIGGED;
+    UserWrite();
   }
-  else if (GPIO_Pin == DI_2_Pin) {
-    sys_state = DI2_TRIGGED;
+  else if (GPIO_Pin == DI_1_Pin)
+  {
+    exit_trig_state = DI1_TRIGGED;
   }
-  else if (GPIO_Pin == DI_3_Pin) {
-    sys_state = DI3_TRIGGED;
+  else if (GPIO_Pin == DI_2_Pin)
+  {
+    exit_trig_state = DI2_TRIGGED;
   }
-  else if (GPIO_Pin == DI_4_Pin) {
-    sys_state = DI4_TRIGGED;
+  else if (GPIO_Pin == DI_3_Pin)
+  {
+    exit_trig_state = DI3_TRIGGED;
   }
-
+  else if (GPIO_Pin == DI_4_Pin)
+  {
+    exit_trig_state = DI4_TRIGGED;
+  }
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -226,10 +255,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
     else{
       RxBuffer[rs485_rx_cnt++] = aRxBuffer; // 接受数据转存
-      
-      if((RxBuffer[rs485_rx_cnt-1] == 0x0A) && (RxBuffer[rs485_rx_cnt-2] == 0x0d)){
+
+      if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
+      {
         HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
-        while ( HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
+        while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX)
+          ;
         rs485_rx_cnt = 0;
         memset(RxBuffer, 0x00, sizeof(RxBuffer));
       }

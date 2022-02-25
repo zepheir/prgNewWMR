@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "stm32f0xx_hal_flash.h": "c",
+        "eeprom.h": "c",
+        "stm32f0xx.h": "c",
+        "stm32f0xx_flash.h": "c",
+        "stm32f030x8.h": "c",
+        "type_traits": "c",
+        "para.h": "c",
+        "main.h": "c",
+        "func.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
+}
