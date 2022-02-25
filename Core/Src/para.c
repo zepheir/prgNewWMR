@@ -2,18 +2,21 @@
 #include "func.h"
 
 // 参数定义
-#define FILTER_MAX 10
+
 
 extern PARA para;
 extern FILTER filter;
+extern uint8_t pwr_check_filter;
 
 void Para_Init(void)
 {
     
-    filter.ch1 = FILTER_MAX;
-    filter.ch2 = FILTER_MAX;
-    filter.ch3 = FILTER_MAX;
-    filter.ch4 = FILTER_MAX;
+    filter.data.ch1 = FILTER_MAX;
+    filter.data.ch2 = FILTER_MAX;
+    filter.data.ch3 = FILTER_MAX;
+    filter.data.ch4 = FILTER_MAX;
+
+    pwr_check_filter = FILTER_MAX;
     
     UserRead();
 

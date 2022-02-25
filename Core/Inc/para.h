@@ -3,10 +3,16 @@
 
 #include "main.h"
 
+#define CH1 0
+#define CH2 1
+#define CH3 2
+#define CH4 3
+
 // #define FLASH_PAGE_SIZE        ((uint32_t)0x00000400)  // FLASH_PAGE_SIZE is defined in "stm32f0xx_hal_flash_ex.h"
 #define FLASH_USER_START_ADDR  ((uint32_t)0x0800F800)  
 #define FLASH_USER_END_ADDR    ((uint32_t)0x08010000) 
 
+#define FILTER_MAX 8
 //定义需保存数据的结构
 typedef struct 
 {
@@ -19,6 +25,7 @@ typedef struct
 typedef union 
 {
     uint32_t dataAll[4];
+    uint32_t ch[4];
     _PARA data;
 } PARA;
 
@@ -29,19 +36,22 @@ typedef struct
     uint8_t ch2;
     uint8_t ch3;
     uint8_t ch4;
+} _FILTER;
+
+typedef union 
+{
+    uint8_t ch[4];
+    _FILTER data;
 } FILTER;
 
+typedef enum {
+    READY = 0,
+    TRIGGED,
+    FILTERING,
+    TIMEOUT
+} CH_STATE;
 
 
-//
-void EEPROM_Write_Words(uint16_t addr, uint8_t *buffer, uint8_t len);
-void EEPROM_Read_Bytes(uint16_t addr, uint8_t *buffer, uint16_t len);
-//
-void EEPROM_Save_Word(uint16_t addr, uint16_t data);
-
-uint8_t Para_Save_Byte(uint16_t addr, uint8_t data);
-uint8_t Para_Save_Int(uint16_t addr, uint8_t data);
-uint8_t Para_Save_Float(uint16_t addr, float data);
 
 // 参数初始化
 void Para_Init(void);
