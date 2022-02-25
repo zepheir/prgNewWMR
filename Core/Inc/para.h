@@ -31,18 +31,6 @@ typedef struct
     uint8_t ch4;
 } FILTER;
 
-
-
-//
-void EEPROM_Write_Words(uint16_t addr, uint8_t *buffer, uint8_t len);
-void EEPROM_Read_Bytes(uint16_t addr, uint8_t *buffer, uint16_t len);
-//
-void EEPROM_Save_Word(uint16_t addr, uint16_t data);
-
-uint8_t Para_Save_Byte(uint16_t addr, uint8_t data);
-uint8_t Para_Save_Int(uint16_t addr, uint8_t data);
-uint8_t Para_Save_Float(uint16_t addr, float data);
-
 // 参数初始化
 void Para_Init(void);
 
