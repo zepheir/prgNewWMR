@@ -64,14 +64,21 @@ uint8_t get_flash_offset_address(void){
 
     for ( i = 0; i < 32; i++)
     {
-        if (*(__IO uint32_t *)(_addr + i * 32U) == 0xffffffff)
+        if (*(__IO uint32_t *)(_addr + i * 32U + 0x1c) == 0xffffffff)
         {
             break;
         }
     }
-    
-    return i-1;
 
+    // if (i == 0)
+    // {
+    //     return 31;
+    // }else{
+    //     return i-1;
+    // }
+    return i-1;
+    
+    
 }
 
 /**
@@ -104,7 +111,7 @@ void UserWrite(void)
 {
     uint32_t _addr = FLASH_USER_START_ADDR;
 
-    if (flash_addr_offset < 127)
+    if (flash_addr_offset < 31)
     {
         flash_addr_offset++;
         _addr += flash_addr_offset * 32U;
@@ -115,6 +122,9 @@ void UserWrite(void)
             HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, _addr, para.dataAll[i]);
             _addr += 4;
         }
+
+        _addr+=12;
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, _addr, 0x77777777);
 
         HAL_FLASH_Lock();
     }
@@ -130,6 +140,9 @@ void UserWrite(void)
             HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, _addr, para.dataAll[i]);
             _addr += 4;
         } 
+
+        _addr+=12;
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, _addr, 0x77777777);
 
         HAL_FLASH_Lock();
     }

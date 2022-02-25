@@ -70,6 +70,7 @@ uint8_t rs485_rx_cnt = 0;
 uint8_t aRxBuffer;
 uint8_t RxBuffer[256];
 
+
 PARA para;
 FILTER filter;
 /* USER CODE END PV */
