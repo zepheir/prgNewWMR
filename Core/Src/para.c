@@ -7,6 +7,7 @@
 extern PARA para;
 extern FILTER filter;
 extern uint8_t pwr_check_filter;
+extern SYS_MODE sys_mode;
 
 void Para_Init(void)
 {
@@ -22,7 +23,7 @@ void Para_Init(void)
     // UserErase();
     // HAL_FLASH_Lock();
 
-    if (*(__IO uint32_t *)(_addr + 0x1c) == 0xffffffff)
+    if (sys_mode == SYS_MODE_FACTORY_LOAD || *(__IO uint32_t *)(_addr + 0x1c) == 0xffffffff)
     {
         Para_Factory();
     }

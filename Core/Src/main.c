@@ -49,22 +49,23 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-enum
-{
-  INI_STATE = 0,
-  SYS_INITIALED,
-  ERR_STATE = -1
-} sys_state;
+// enum
+// {
+//   INI_STATE = 0,
+//   SYS_INITIALED,
+//   ERR_STATE = -1
+// } sys_state;
 
-enum
-{
-  NO_TRIGGED = 0,
-  DI1_TRIGGED,
-  DI2_TRIGGED,
-  DI3_TRIGGED,
-  DI4_TRIGGED,
-  PWR_TRIGGED,
-} exit_trig_state;
+// enum
+// {
+//   NO_TRIGGED = 0,
+//   DI1_TRIGGED,
+//   DI2_TRIGGED,
+//   DI3_TRIGGED,
+//   DI4_TRIGGED,
+//   PWR_TRIGGED,
+// } exit_trig_state;
+SYS_MODE sys_mode;
 
 uint8_t rs485_rx_cnt = 0;
 uint8_t aRxBuffer;
@@ -98,7 +99,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
   uint32_t _timeout_100ms = 0, _timeout_1s = 0;
 
-  sys_state = INI_STATE;
+  // sys_state = INI_STATE;
 
   /* USER CODE END 1 */
 
@@ -125,13 +126,15 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  sys_mode = SystemModeSelect();
+
   Para_Init();
 
   HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
 
   // exit_trig_state = NO_TRIGGED;
 
-  sys_state = SYS_INITIALED;
+  // sys_state = SYS_INITIALED;
 
   /* USER CODE END 2 */
 
@@ -157,7 +160,7 @@ int main(void)
 
       Run();
 
-      HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
+      // HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
 
       // HAL_UART_Transmit(&h_rs485, "123456789", 9, 0xffff);
     }
