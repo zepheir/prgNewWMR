@@ -1,6 +1,8 @@
 #ifndef __GPRS_7G3_H__
 #define __GPRS_7G3_H__
 
+#include "main.h"
+
 #define h_gprs huart2
 
 typedef enum{
@@ -26,7 +28,7 @@ typedef enum {
 
 void gprsReceiver(void);
 void gprs_Receiver_TimeoutMode(void);
-
+void gprs_Send(uint8_t *pStr, uint8_t size);
 void gprs_Enter_Setting(void);
 void gprs_Exit_At_Mode(void);
 

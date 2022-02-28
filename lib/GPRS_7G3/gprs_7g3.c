@@ -1,6 +1,6 @@
 #include "gprs_7g3.h"
 #include "rs485.h"
-#include "main.h"
+// #include "main.h"
 #include "func.h"
 #include "para.h"
 #include "usart.h"
@@ -137,4 +137,16 @@ void gprs_Exit_At_Mode(void){
     default:
         break;
     }
+}
+
+void gprs_Send(uint8_t *pStr, uint8_t size){
+
+    uint8_t _buff[size+1];
+
+    memcpy(_buff, pStr, size);
+    memcpy(_buff+size, "\xd", 1);
+
+    HAL_UART_Transmit(&h_gprs, _buff, size+1, 0xffff);
+    while (HAL_USART_GetState(&h_gprs) == HAL_UART_STATE_BUSY_TX);
+
 }

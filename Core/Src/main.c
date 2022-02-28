@@ -55,17 +55,8 @@
 
 SYS_MODE sys_mode;
 
-// uint8_t rs485_rx_cnt = 0;
 uint8_t aRxBuffer;
-// uint8_t RxBuffer[256];
-
-// RS485_STATE rs485_state;
-// uint8_t rs485_resp_timer = RS485_RESP_TIME_MAX;
-
-// uint8_t gprs_rx_cnt = 0;
 uint8_t bRxBuffer;
-// uint8_t gprsRxBuffer[256];
-
 
 PARA para;
 FILTER filter;
@@ -93,8 +84,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   uint32_t _timeout_100ms = 0, _timeout_1s = 0;
-
-  // sys_state = INI_STATE;
 
   /* USER CODE END 1 */
 
@@ -128,10 +117,6 @@ int main(void)
   HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
   HAL_UART_Receive_IT(&h_gprs, (uint8_t *)&bRxBuffer, 1);
 
-  // exit_trig_state = NO_TRIGGED;
-
-  // sys_state = SYS_INITIALED;
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -156,9 +141,7 @@ int main(void)
 
       Run();
 
-      // HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
 
-      // HAL_UART_Transmit(&h_rs485, "123456789", 9, 0xffff);
     }
   }
   /* USER CODE END 3 */
