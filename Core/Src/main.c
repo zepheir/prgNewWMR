@@ -28,6 +28,8 @@
 #include <string.h>
 #include "func.h"
 #include "para.h"
+#include "rs485.h"
+#include "gprs_7g3.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,35 +43,28 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define h_rs485 huart1
-#define h_uart huart2
+// #define h_rs485 huart1
+// #define h_gprs huart2
+
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-// enum
-// {
-//   INI_STATE = 0,
-//   SYS_INITIALED,
-//   ERR_STATE = -1
-// } sys_state;
 
-// enum
-// {
-//   NO_TRIGGED = 0,
-//   DI1_TRIGGED,
-//   DI2_TRIGGED,
-//   DI3_TRIGGED,
-//   DI4_TRIGGED,
-//   PWR_TRIGGED,
-// } exit_trig_state;
 SYS_MODE sys_mode;
 
-uint8_t rs485_rx_cnt = 0;
+// uint8_t rs485_rx_cnt = 0;
 uint8_t aRxBuffer;
-uint8_t RxBuffer[256];
+// uint8_t RxBuffer[256];
+
+// RS485_STATE rs485_state;
+// uint8_t rs485_resp_timer = RS485_RESP_TIME_MAX;
+
+// uint8_t gprs_rx_cnt = 0;
+uint8_t bRxBuffer;
+// uint8_t gprsRxBuffer[256];
 
 
 PARA para;
@@ -131,6 +126,7 @@ int main(void)
   Para_Init();
 
   HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
+  HAL_UART_Receive_IT(&h_gprs, (uint8_t *)&bRxBuffer, 1);
 
   // exit_trig_state = NO_TRIGGED;
 
@@ -277,26 +273,42 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   
   if(huart == &h_rs485) {
 
-    // 如果溢出了
-    if(rs485_rx_cnt >= 255){
-      rs485_rx_cnt = 0;
-      memset(RxBuffer, 0x00, sizeof(RxBuffer));
-      uint8_t _buff[] = "over buff size";
-      HAL_UART_Transmit(&h_rs485, (uint8_t *)_buff, sizeof(_buff), 0xffff);
-    }
-    else{
-      RxBuffer[rs485_rx_cnt++] = aRxBuffer; // 接受数据转存
+    // // 如果溢出了
+    // if(rs485_rx_cnt >= 255){
+    //   rs485_rx_cnt = 0;
+    //   memset(RxBuffer, 0x00, sizeof(RxBuffer));
+    //   HAL_UART_Transmit(&h_rs485, "RS485 RX over buff size", 24, 0xffff);
+    // }
+    // else{
+    //   RxBuffer[rs485_rx_cnt++] = aRxBuffer; // 接受数据转存
 
-      if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
-      {
-        HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
-        while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX)
-          ;
-        rs485_rx_cnt = 0;
-        memset(RxBuffer, 0x00, sizeof(RxBuffer));
-      }
-    }
+    //   // 在Normal模式下
+    //   if (sys_mode == SYS_MODE_NORMAL)
+    //   {
+    //     if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
+    //     {
+    //       HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
+    //       while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX)
+    //         ;
+    //       rs485_rx_cnt = 0;
+    //       memset(RxBuffer, 0x00, sizeof(RxBuffer));
+    //     }
+    //   }
+    //   else if (sys_mode == SYS_MODE_DEBUG)
+    //   {
+    //     rs485_state = RS485_WAITING_RESP;
+    //   }
+      
+    // }
+    RS485_Receiver();
+
     HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
+  
+  }else if( huart == &h_gprs){
+
+    gprsReceiver();
+
+    HAL_UART_Receive_IT(&h_gprs, (uint8_t *)&bRxBuffer, 1);
   }
 }
 

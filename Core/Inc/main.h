@@ -105,7 +105,9 @@ void Error_Handler(void);
 #define SDA_Pin GPIO_PIN_7
 #define SDA_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
-
+// uint8_t gprs_rx_cnt = 0;
+// uint8_t bRxBuffer;
+// uint8_t gprsRxBuffer[256];
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
