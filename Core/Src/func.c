@@ -1,6 +1,8 @@
 #include "func.h"
 #include "main.h"
 #include "usart.h"
+#include "rs485.h"
+#include "gprs_7g3.h"
 
 typedef enum{
     HIGH,
@@ -19,6 +21,12 @@ extern FILTER filter;
 extern CH_STATE ch_state[4];
 extern CH_STATE pwr_check_state;
 extern uint8_t pwr_check_filter;
+
+extern uint8_t rs485_resp_timer;
+extern RS485_STATE rs485_state;
+extern uint8_t rs485_rx_cnt;
+extern uint8_t aRxBuffer;
+extern uint8_t RxBuffer[256];
 //
 
 
@@ -48,17 +56,16 @@ void Update_State(void){
     if (SW1_state == RAISED)
     {
         HAL_UART_Transmit(&huart1, "SW1_RAISED", 11, 0xffff);
-        SW1_state = HIGH;
     }
     else if (SW1_state == FALLED)
     {
         HAL_UART_Transmit(&huart1, "SW1_FALLED", 11, 0xffff);
-        SW1_state = LOW;
     }
 
     DI_Filter();
 
 
+    // 
     switch (sys_mode)
     {
     case  SYS_MODE_NORMAL:
@@ -66,6 +73,11 @@ void Update_State(void){
         break;
     case SYS_MODE_DEBUG:
         Led_Blink_Debug_Mode();
+
+        // rs485 timeout mode 
+        RS485_Receiver_TimeoutMode();
+        
+        gprs_Receiver_TimeoutMode();
         break;
 
     default:
@@ -87,7 +99,14 @@ void Run(void)
     case  SYS_MODE_NORMAL:
         /* code */
         break;
+    
     case SYS_MODE_DEBUG:
+        if (SW1_state == LOW)
+        {
+            gprs_Enter_Setting();
+        }
+        
+        break;
 
     default:
         break;
