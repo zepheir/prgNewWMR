@@ -221,7 +221,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (pwr_check_state == READY)
     {
       pwr_check_state = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "PWR_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "PWR_TRIGGED\r", 12, 0xffff);
       UserWrite();
       // exit_trig_state = PWR_TRIGGED;
     }
@@ -232,7 +232,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH1] == READY)
     {
       ch_state[CH1] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI1_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI1_TRIGGED\r", 12, 0xffff);
     }
     // exit_trig_state = DI1_TRIGGED;
   }
@@ -241,7 +241,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH2] == READY)
     {
       ch_state[CH2] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI2_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI2_TRIGGED\r", 12, 0xffff);
     }
     // exit_trig_state = DI2_TRIGGED;
   }
@@ -250,7 +250,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH3] == READY)
     {
       ch_state[CH3] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI3_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI3_TRIGGED\r", 12, 0xffff);
     }
   }
   else if (GPIO_Pin == DI_4_Pin)
@@ -258,7 +258,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH4] == READY)
     {
       ch_state[CH4] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI4_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI4_TRIGGED\r", 12, 0xffff);
     }
   }
 }
@@ -273,33 +273,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   
   if(huart == &h_rs485) {
 
-    // // 如果溢出了
-    // if(rs485_rx_cnt >= 255){
-    //   rs485_rx_cnt = 0;
-    //   memset(RxBuffer, 0x00, sizeof(RxBuffer));
-    //   HAL_UART_Transmit(&h_rs485, "RS485 RX over buff size", 24, 0xffff);
-    // }
-    // else{
-    //   RxBuffer[rs485_rx_cnt++] = aRxBuffer; // 接受数据转存
-
-    //   // 在Normal模式下
-    //   if (sys_mode == SYS_MODE_NORMAL)
-    //   {
-    //     if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
-    //     {
-    //       HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
-    //       while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX)
-    //         ;
-    //       rs485_rx_cnt = 0;
-    //       memset(RxBuffer, 0x00, sizeof(RxBuffer));
-    //     }
-    //   }
-    //   else if (sys_mode == SYS_MODE_DEBUG)
-    //   {
-    //     rs485_state = RS485_WAITING_RESP;
-    //   }
-      
-    // }
     RS485_Receiver();
 
     HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);

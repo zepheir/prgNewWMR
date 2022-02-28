@@ -27,6 +27,8 @@ extern RS485_STATE rs485_state;
 extern uint8_t rs485_rx_cnt;
 extern uint8_t aRxBuffer;
 extern uint8_t RxBuffer[256];
+
+extern GPRS_STATE gprs_state;
 //
 
 
@@ -55,11 +57,17 @@ void Update_State(void){
 
     if (SW1_state == RAISED)
     {
-        HAL_UART_Transmit(&huart1, "SW1_RAISED", 11, 0xffff);
+        HAL_UART_Transmit(&huart1, "SW1_RAISED\r", 11, 0xffff);
+        //
+        gprs_state = GPRS_SEND_AT_ENTM;
+
     }
     else if (SW1_state == FALLED)
     {
-        HAL_UART_Transmit(&huart1, "SW1_FALLED", 11, 0xffff);
+        HAL_UART_Transmit(&huart1, "SW1_FALLED\r", 11, 0xffff);
+        
+        gprs_state = GPRS_READY;
+        
     }
 
     DI_Filter();
@@ -104,6 +112,8 @@ void Run(void)
         if (SW1_state == LOW)
         {
             gprs_Enter_Setting();
+        }else {
+            gprs_Exit_At_Mode();
         }
         
         break;

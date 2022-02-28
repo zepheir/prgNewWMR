@@ -11,24 +11,22 @@ uint8_t gprs_rx_cnt = 0;
 extern uint8_t bRxBuffer;
 uint8_t gprs_resp_timer;
 uint8_t gprsRxBuffer[256];
+uint8_t gprsBuffer[128];
 extern SYS_MODE sys_mode;
 
-typedef enum {
-    GPRS_READY,
-    // GPRS_RX_WAITING_RESP,
-    // GPRS_TIMEOUT,
-    GPRS_SEND_HELLO,
-    GPRS_WAITING_A,
-    GPRS_REPLY_A,
-    GPRS_WAITING_A_OK,
-    GRPS_AT_MODE_READY,
-    GPRS_SEND_AT_ENTM,
-    GRPS_WAITING_AT_ENTM
-}GPRS_STATE;
+
 GPRS_STATE gprs_state;
 
 GPRS_RX_STATE gprs_rx_state;
 
+
+void gprs_Clear_Rx_Buff(void);
+
+void gprs_Clear_Rx_Buff(void)
+{
+    gprs_rx_cnt = 0;
+    memset(gprsRxBuffer, 0x00, sizeof(gprsRxBuffer));
+}
 
 void gprsReceiver(void)
 {
@@ -65,6 +63,9 @@ void gprs_Receiver_TimeoutMode(void){
             // while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
             RS485_Out(&gprsRxBuffer, gprs_rx_cnt);
 
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
+            memcpy(gprsBuffer, gprsRxBuffer, gprs_rx_cnt);
+
             gprs_rx_cnt = 0;
             memset(gprsRxBuffer, 0x00, sizeof(gprsRxBuffer));
 
@@ -80,14 +81,56 @@ void gprs_Enter_Setting(void){
     switch (gprs_state)
     {
     case GPRS_READY:
-        RS485_Out(">>+++", 5);
+        RS485_Out(">>+++", 6);
         HAL_UART_Transmit(&h_gprs, "+++", 3, 0xffff);
         gprs_state = GPRS_WAITING_A;
         break;
     case GPRS_WAITING_A:
-        if(gprsRxBuffer[0] == "a"){
-            RS485_Out(">>a", 3);
-            // gprs_state = GPRS_REPLY_A;
+        if(gprsBuffer[0] == 'a'){
+            RS485_Out(gprsBuffer, gprs_rx_cnt); 
+            gprs_Clear_Rx_Buff();
+            gprs_state = GPRS_REPLY_A;
+        }
+        break;
+    case GPRS_REPLY_A:
+        HAL_UART_Transmit(&h_gprs, "a", 1, 0xffff);
+        gprs_state = GPRS_WAITING_A_OK;
+        break;
+
+    case GPRS_WAITING_A_OK:
+        if(strncmp(gprsBuffer, "+ok", 3) == 0){
+            RS485_Out(gprsBuffer, gprs_rx_cnt);
+            gprs_Clear_Rx_Buff();
+            gprs_state = GRPS_AT_MODE_READY;
+            RS485_Out(">> Enter AT COMMAND MODE!", 26);
+        }
+        break;
+
+    case GRPS_AT_MODE_READY:
+        
+        break;
+
+
+    default:
+        break;
+    }
+}
+
+void gprs_Exit_At_Mode(void){
+
+    switch (gprs_state)
+    {
+
+    case GPRS_SEND_AT_ENTM:
+        gprs_Clear_Rx_Buff();
+        HAL_UART_Transmit(&h_gprs, "at+entm\xd", 9, 0xffff);
+        gprs_state = GPRS_WAITING_AT_ENTM;
+        break;
+
+    case GPRS_WAITING_AT_ENTM:
+        if(strncmp(gprsBuffer, "at+entm\r\000\r\nOK\r\n", 15) == 0){
+            RS485_Out(">> Exit AT COMMAND MODE!",  25);
+            gprs_state = GPRS_READY;
         }
         break;
 
