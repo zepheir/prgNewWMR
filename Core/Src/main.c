@@ -28,6 +28,8 @@
 #include <string.h>
 #include "func.h"
 #include "para.h"
+#include "rs485.h"
+#include "gprs_7g3.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -41,35 +43,20 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define h_rs485 huart1
-#define h_uart huart2
+// #define h_rs485 huart1
+// #define h_gprs huart2
+
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-enum
-{
-  INI_STATE = 0,
-  SYS_INITIALED,
-  ERR_STATE = -1
-} sys_state;
 
-enum
-{
-  NO_TRIGGED = 0,
-  DI1_TRIGGED,
-  DI2_TRIGGED,
-  DI3_TRIGGED,
-  DI4_TRIGGED,
-  PWR_TRIGGED,
-} exit_trig_state;
+SYS_MODE sys_mode;
 
-uint8_t rs485_rx_cnt = 0;
 uint8_t aRxBuffer;
-uint8_t RxBuffer[256];
-
+uint8_t bRxBuffer;
 
 PARA para;
 FILTER filter;
@@ -98,8 +85,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
   uint32_t _timeout_100ms = 0, _timeout_1s = 0;
 
-  sys_state = INI_STATE;
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -125,13 +110,12 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  sys_mode = SystemModeSelect();
+
   Para_Init();
 
   HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
-
-  // exit_trig_state = NO_TRIGGED;
-
-  sys_state = SYS_INITIALED;
+  HAL_UART_Receive_IT(&h_gprs, (uint8_t *)&bRxBuffer, 1);
 
   /* USER CODE END 2 */
 
@@ -157,9 +141,7 @@ int main(void)
 
       Run();
 
-      HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
 
-      // HAL_UART_Transmit(&h_rs485, "123456789", 9, 0xffff);
     }
   }
   /* USER CODE END 3 */
@@ -222,7 +204,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (pwr_check_state == READY)
     {
       pwr_check_state = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "PWR_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "PWR_TRIGGED\r", 12, 0xffff);
       UserWrite();
       // exit_trig_state = PWR_TRIGGED;
     }
@@ -233,7 +215,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH1] == READY)
     {
       ch_state[CH1] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI1_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI1_TRIGGED\r", 12, 0xffff);
     }
     // exit_trig_state = DI1_TRIGGED;
   }
@@ -242,7 +224,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH2] == READY)
     {
       ch_state[CH2] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI2_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI2_TRIGGED\r", 12, 0xffff);
     }
     // exit_trig_state = DI2_TRIGGED;
   }
@@ -251,7 +233,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH3] == READY)
     {
       ch_state[CH3] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI3_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI3_TRIGGED\r", 12, 0xffff);
     }
   }
   else if (GPIO_Pin == DI_4_Pin)
@@ -259,7 +241,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (ch_state[CH4] == READY)
     {
       ch_state[CH4] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI4_TRIGGED", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, "DI4_TRIGGED\r", 12, 0xffff);
     }
   }
 }
@@ -274,26 +256,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   
   if(huart == &h_rs485) {
 
-    // 如果溢出了
-    if(rs485_rx_cnt >= 255){
-      rs485_rx_cnt = 0;
-      memset(RxBuffer, 0x00, sizeof(RxBuffer));
-      uint8_t _buff[] = "over buff size";
-      HAL_UART_Transmit(&h_rs485, (uint8_t *)_buff, sizeof(_buff), 0xffff);
-    }
-    else{
-      RxBuffer[rs485_rx_cnt++] = aRxBuffer; // 接受数据转存
+    RS485_Receiver();
 
-      if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
-      {
-        HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
-        while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX)
-          ;
-        rs485_rx_cnt = 0;
-        memset(RxBuffer, 0x00, sizeof(RxBuffer));
-      }
-    }
     HAL_UART_Receive_IT(&h_rs485, (uint8_t *)&aRxBuffer, 1);
+  
+  }else if( huart == &h_gprs){
+
+    gprsReceiver();
+
+    HAL_UART_Receive_IT(&h_gprs, (uint8_t *)&bRxBuffer, 1);
   }
 }
 

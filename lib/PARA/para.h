@@ -13,6 +13,8 @@
 #define FLASH_USER_END_ADDR    ((uint32_t)0x08010000) 
 
 #define FILTER_MAX 8
+
+
 //定义需保存数据的结构
 typedef struct 
 {
@@ -50,6 +52,15 @@ typedef enum {
     FILTERING,
     TIMEOUT
 } CH_STATE;
+
+
+//
+typedef enum {
+    SYS_MODE_NORMAL,
+    SYS_MODE_FACTORY_LOAD,
+    SYS_MODE_DEBUG
+} SYS_MODE;
+
 
 
 
