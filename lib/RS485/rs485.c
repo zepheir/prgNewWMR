@@ -13,11 +13,19 @@ uint8_t rs485_resp_timer = RS485_RESP_TIME_MAX;
 
 extern SYS_MODE sys_mode;
 
+void RS485_Clear_Rx_Buff(void);
+
+void RS485_Clear_Rx_Buff(void){
+  rs485_rx_cnt = 0U;
+  memset(RxBuffer, 0x00, sizeof(RxBuffer));
+}
+
 void RS485_Receiver(void){
     // 如果溢出了
     if(rs485_rx_cnt >= 255){
-      rs485_rx_cnt = 0;
-      memset(RxBuffer, 0x00, sizeof(RxBuffer));
+      // rs485_rx_cnt = 0;
+      // memset(RxBuffer, 0x00, sizeof(RxBuffer));
+      RS485_Clear_Rx_Buff();
       uint8_t _buff[] = "RS485 RX over buff size";
       RS485_Out(_buff, sizeof(_buff));
     //   HAL_UART_Transmit(&h_rs485, _buff, sizeof(_buff), 0xffff);
@@ -30,11 +38,17 @@ void RS485_Receiver(void){
       {
         if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
         {
-          HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
-          while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX)
-            ;
-          rs485_rx_cnt = 0;
-          memset(RxBuffer, 0x00, sizeof(RxBuffer));
+          // HAL_UART_Transmit(&h_rs485, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
+          // while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX)
+          //   ;
+
+          // uint8_t _buff[];
+
+          RS485_Out((uint8_t *)&RxBuffer, rs485_rx_cnt);
+
+          RS485_Clear_Rx_Buff();
+          // rs485_rx_cnt = 0;
+          // memset(RxBuffer, 0x00, sizeof(RxBuffer));
         }
       }
       else if (sys_mode == SYS_MODE_DEBUG)
@@ -60,10 +74,11 @@ void RS485_Receiver_TimeoutMode(void)
 
             // HAL_UART_Transmit(&huart1, (uint8_t *)&RxBuffer, rs485_rx_cnt, 0xffff);
             // while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
-            RS485_Out(&RxBuffer, rs485_rx_cnt);
+            RS485_Out((uint8_t *)&RxBuffer, rs485_rx_cnt);
 
-            rs485_rx_cnt = 0;
-            memset(RxBuffer, 0x00, sizeof(RxBuffer));
+            RS485_Clear_Rx_Buff();
+            // rs485_rx_cnt = 0;
+            // memset(RxBuffer, 0x00, sizeof(RxBuffer));
 
             rs485_state = RS485_READY;
         }
@@ -71,11 +86,11 @@ void RS485_Receiver_TimeoutMode(void)
 }
 
 
-void RS485_Out(uint8_t str[], uint8_t size){
+void RS485_Out(uint8_t *pStr, uint8_t size){
 
     uint8_t _buff[size+1];
 
-    memcpy(_buff, str, size);
+    memcpy(_buff, pStr, size);
     memcpy(_buff+size, "\xd", 1);
 
     HAL_UART_Transmit(&h_rs485, _buff, size+1, 0xffff);
