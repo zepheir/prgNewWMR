@@ -71,11 +71,12 @@ void RS485_Receiver_TimeoutMode(void)
 
             RS485_Out((uint8_t *)&RxBuffer, rs485_rx_cnt);
 
-            if (gprs_state == GRPS_AT_MODE_READY)
-            {
-              gprs_Send((uint8_t *)&RxBuffer, rs485_rx_cnt);
-            }
-            
+            // if (gprs_state == GRPS_AT_MODE_READY)
+            // {
+            //   gprs_Send((uint8_t *)&RxBuffer, rs485_rx_cnt);
+            // }
+
+            gprs_Send((uint8_t *)&RxBuffer, rs485_rx_cnt);
 
             RS485_Clear_Rx_Buff();
 

@@ -37,6 +37,7 @@ void SW1_State_Change(void);
 void DI_Filter(void);
 void Led_Blink_Normal_Mode(void);
 void Led_Blink_Debug_Mode(void);
+void Led_Blink_AT_Mode(void);
 
 static uint16_t flash_addr_offset;
 
@@ -80,7 +81,11 @@ void Update_State(void){
         Led_Blink_Normal_Mode();
         break;
     case SYS_MODE_DEBUG:
-        Led_Blink_Debug_Mode();
+        if(gprs_state == GRPS_AT_MODE_READY){
+            Led_Blink_AT_Mode();
+        }else{
+            Led_Blink_Debug_Mode();
+        }
 
         // rs485 timeout mode 
         RS485_Receiver_TimeoutMode();
@@ -346,10 +351,10 @@ void Led_Blink_Normal_Mode(void)
     }
     else
     {
-        led_count = 10;
+        led_count = 20;
     }
 
-    if (led_count > 8)
+    if (led_count > 18)
     {
         HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_SET);
     }
@@ -367,10 +372,10 @@ void Led_Blink_Debug_Mode(void)
     }
     else
     {
-        led_count = 4;
+        led_count = 10;
     }
 
-    if (led_count > 2)
+    if (led_count > 5)
     {
         HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_SET);
     }
@@ -378,4 +383,25 @@ void Led_Blink_Debug_Mode(void)
     {
         HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_RESET);
     }
+}
+
+void Led_Blink_AT_Mode(void){
+    // if (led_count > 0)
+    // {
+    //     led_count--;
+    // }
+    // else
+    // {
+    //     led_count = 2;
+    // }
+
+    // if (led_count > 1)
+    // {
+    //     HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_SET);
+    // }
+    // else
+    // {
+    //     HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_RESET);
+    // }
+    HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
 }
