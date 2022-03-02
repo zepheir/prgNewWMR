@@ -5,6 +5,8 @@
 #include "para.h"
 #include "usart.h"
 #include "string.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 
 uint8_t gprs_rx_cnt = 0;
@@ -12,11 +14,11 @@ extern uint8_t bRxBuffer;
 uint8_t gprs_resp_timer;
 uint8_t gprsRxBuffer[256];
 uint8_t gprsBuffer[128];
-extern SYS_MODE sys_mode;
+extern PARA para;
+// extern SYS_MODE sys_mode;
 
 GPRS_7G3 gprs_7g3;
 GPRS_STATE gprs_state;
-
 GPRS_RX_STATE gprs_rx_state;
 
 
@@ -31,7 +33,7 @@ void gprs_Clear_Rx_Buff(void)
 
 void gprs_Send(char *pStr){
 
-    char _buff[128];
+    char _buff[256];
     uint8_t len;
 
     len = strlen(pStr);
@@ -198,7 +200,7 @@ void gprs_Ini(void){
         pStr = strstr((char *)gprsBuffer, "+IMEI:");
         if(pStr){
             RS485_Out(">> IMEI:");
-            strcpy(gprs_7g3.imei, pStr);
+            strcpy(gprs_7g3.imei, pStr+6);
             RS485_Out(gprs_7g3.imei);
             gprs_state = GPRS_GET_SERVER;
         }
@@ -229,6 +231,9 @@ void gprs_Ini(void){
 
 
 void gprs_Remote_Req(void){
+    // char *pStr;
+    char _buff[256];
+
     switch (gprs_state)
     {
     case GPRS_READY:
@@ -237,13 +242,70 @@ void gprs_Remote_Req(void){
         break;
 
     case GPRS_REMOTE_REQ:
+
+        memset(_buff, 0x00, sizeof(_buff));
+        sprintf(_buff, "{\"TYPE\":\"REQ\", \"IMEI\":\"%s\"}", gprs_7g3.imei);
+        gprs_Send(_buff);
+
         RS485_Out(">> GPRS REMOTE SEND:");
+        RS485_Out(_buff);
+
         gprs_state = GPRS_REMOTE_REQ_WAIT;
         break;
     
     case GPRS_REMOTE_REQ_WAIT:
-        RS485_Out(">> GPRS REMOTE REPLY:");
-        gprs_state = GPRS_READY;
+
+        if(strstr((char *)gprsBuffer, "READALL")){
+            RS485_Out(">> GPRS REMOTE REPLY: READALL");
+
+            memset(_buff, 0x00, sizeof(_buff));
+            sprintf(_buff, 
+                "{ "
+                    "\"TYPE\":\"DATA\","
+                    "\"IMEI\":\"%s\","
+                    "\"D0\":%lu,"
+                    "\"D1\":%lu,"
+                    "\"D2\":%lu,"
+                    "\"D3\":%lu}",
+                    gprs_7g3.imei, 
+                    para.ch[CH1],
+                    para.ch[CH2],
+                    para.ch[CH3],
+                    para.ch[CH4]
+                    );
+            RS485_Out(_buff);
+            // gprs_Send("{\"TYPE\":\"DATA\", \"IMEI\":\"865374057342316\",\"D0\":10,\"D1\":10,\"D2\":10,\"D3\":10}");
+            gprs_Send(_buff);
+            gprs_state = GPRS_REMOTE_SENDDATA_WAIT;
+        }
+        else if(strstr((char *)gprsBuffer, "SETDATA")){
+            RS485_Out(">> GPRS REMOTE REPLY: SETDATA");
+            
+            memset(_buff, 0x00, sizeof(_buff));
+            sprintf(_buff, "D0:%lu, D1:%lu, D2:%lu, D3:%lu",
+                    para.ch[CH1],
+                    para.ch[CH2],
+                    para.ch[CH3],
+                    para.ch[CH4]);
+
+            RS485_Out(_buff);
+            gprs_state = GPRS_READY;
+        }
+        else{
+            RS485_Out(">> GPRS REMOTE REQ WAITING ...");
+        }
+        
+        break;
+
+    case GPRS_REMOTE_SENDDATA_WAIT:
+        if (strstr((char *)gprsBuffer, "END"))
+        {
+            RS485_Out(">> GPRS REMOTE REPLY: END");
+            gprs_state = GPRS_READY;
+        }
+        else{
+            RS485_Out(">> GPRS REMOTE SENDDATA WAITING ...");
+        }
         break;
     
     default:

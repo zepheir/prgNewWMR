@@ -14,7 +14,7 @@ uint8_t rs485_resp_timer = RS485_RESP_TIME_MAX;
 
 extern GPRS_STATE gprs_state;
 
-extern SYS_MODE sys_mode;
+// extern SYS_MODE sys_mode;
 
 void RS485_Clear_Rx_Buff(void);
 
@@ -25,7 +25,7 @@ void RS485_Clear_Rx_Buff(void){
 
 void RS485_Out(char *pStr){
 
-    uint8_t _buff[128];
+    uint8_t _buff[256];
     uint8_t len;
 
     len = strlen(pStr);
@@ -93,7 +93,7 @@ void RS485_Receiver_TimeoutMode(void)
             // }
 
             // gprs_Send((uint8_t *)&RxBuffer, rs485_rx_cnt);
-            gprs_Send((uint8_t *)&RxBuffer );
+            gprs_Send((char *)&RxBuffer );
 
             RS485_Clear_Rx_Buff();
 
@@ -102,16 +102,4 @@ void RS485_Receiver_TimeoutMode(void)
     }
 }
 
-
-// void RS485_Out(uint8_t *pStr, uint8_t size){
-
-//     uint8_t _buff[size+1];
-
-//     memcpy(_buff, pStr, size);
-//     memcpy(_buff+size, "\xd", 1);
-
-//     HAL_UART_Transmit(&h_rs485, _buff, size+1, 0xffff);
-//     while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
-
-// }
 

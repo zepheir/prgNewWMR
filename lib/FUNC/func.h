@@ -3,6 +3,21 @@
 
 #include "para.h"
 
+typedef enum {
+    READY = 0,
+    TRIGGED,
+    FILTERING,
+    TIMEOUT
+} CH_STATE;
+
+
+//
+typedef enum {
+    SYS_MODE_NORMAL,
+    SYS_MODE_FACTORY_LOAD,
+    SYS_MODE_REMOTE,
+    SYS_MODE_DEBUG
+} SYS_MODE;
 
 void Update_State(void);
 

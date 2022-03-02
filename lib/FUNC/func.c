@@ -37,6 +37,7 @@ void SW1_State_Change(void);
 void DI_Filter(void);
 void Led_Blink_Normal_Mode(void);
 void Led_Blink_Debug_Mode(void);
+void Led_Blink_REQ_Mode(void);
 void Led_Blink_AT_Mode(void);
 
 static uint16_t flash_addr_offset;
@@ -52,7 +53,10 @@ uint8_t get_flash_offset_address(void);
  */
 void Update_State(void){
 
-    sys_mode = SystemModeSelect();
+    if(sys_mode != SYS_MODE_REMOTE){
+        sys_mode = SystemModeSelect();
+    }
+    
 
     SW1_State_Change();
 
@@ -61,7 +65,9 @@ void Update_State(void){
         // HAL_UART_Transmit(&huart1, "SW1_RAISED\r", 11, 0xffff);
         RS485_Out("SW1_RAISED\r");
         //
-        gprs_state = GPRS_SEND_AT_ENTM;
+        if(sys_mode == SYS_MODE_DEBUG){
+            gprs_state = GPRS_SEND_AT_ENTM;
+        }
 
     }
     else if (SW1_state == FALLED)
@@ -69,7 +75,11 @@ void Update_State(void){
         // HAL_UART_Transmit(&huart1, "SW1_FALLED\r", 11, 0xffff);
         RS485_Out("SW1_FALLED\r");
         
-        gprs_state = GPRS_READY;
+        if(sys_mode == SYS_MODE_DEBUG){
+            gprs_state = GPRS_READY;
+        }else if(sys_mode == SYS_MODE_NORMAL){
+            sys_mode = SYS_MODE_REMOTE;
+        }
         
     }
 
@@ -81,6 +91,9 @@ void Update_State(void){
     {
     case  SYS_MODE_NORMAL:
         Led_Blink_Normal_Mode();
+
+
+
         break;
     case SYS_MODE_DEBUG:
         if(gprs_state == GRPS_AT_MODE_READY){
@@ -93,6 +106,10 @@ void Update_State(void){
         // RS485_Receiver_TimeoutMode();
         
         // gprs_Receiver_TimeoutMode();
+        break;
+
+    case SYS_MODE_REMOTE:
+        Led_Blink_REQ_Mode();
         break;
 
     default:
@@ -119,6 +136,7 @@ void Run(void)
         if (gprs_state < GPRS_READY){
             gprs_Ini();
         }
+        
         break;
     
     case SYS_MODE_DEBUG:
@@ -127,6 +145,16 @@ void Run(void)
             gprs_Enter_Setting();
         }else {
             gprs_Exit_At_Mode();
+        }
+        
+        break;
+
+    case SYS_MODE_REMOTE:
+        // RS485_Out(">> SYS remote mode:");
+        gprs_Remote_Req();
+        if (gprs_state == GPRS_READY)
+        {
+            sys_mode = SYS_MODE_NORMAL;
         }
         
         break;
@@ -394,22 +422,11 @@ void Led_Blink_Debug_Mode(void)
 }
 
 void Led_Blink_AT_Mode(void){
-    // if (led_count > 0)
-    // {
-    //     led_count--;
-    // }
-    // else
-    // {
-    //     led_count = 2;
-    // }
 
-    // if (led_count > 1)
-    // {
-    //     HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_SET);
-    // }
-    // else
-    // {
-    //     HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_RESET);
-    // }
+    HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
+}
+
+void Led_Blink_REQ_Mode(void){
+
     HAL_GPIO_TogglePin(LED_STAT_GPIO_Port, LED_STAT_Pin);
 }
