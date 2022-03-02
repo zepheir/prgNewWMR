@@ -23,35 +23,51 @@ void RS485_Clear_Rx_Buff(void){
   memset(RxBuffer, 0x00, sizeof(RxBuffer));
 }
 
+void RS485_Out(char *pStr){
+
+    uint8_t _buff[128];
+    uint8_t len;
+
+    len = strlen(pStr);
+    memset(_buff, 0x00, sizeof(_buff));
+    memcpy(_buff, pStr, len);
+    _buff[len] = '\r';
+
+    HAL_UART_Transmit(&h_rs485, _buff, len+1, 0xffff);
+    while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
+
+}
+
 void RS485_Receiver(void){
     // 如果溢出了
     if(rs485_rx_cnt >= 255){
       // rs485_rx_cnt = 0;
       // memset(RxBuffer, 0x00, sizeof(RxBuffer));
       RS485_Clear_Rx_Buff();
-      uint8_t _buff[] = "RS485 RX over buff size";
-      RS485_Out(_buff, sizeof(_buff));
+
+      RS485_Out("RS485 RX over buff size");
     //   HAL_UART_Transmit(&h_rs485, _buff, sizeof(_buff), 0xffff);
     }
     else{
       RxBuffer[rs485_rx_cnt++] = aRxBuffer; // 接受数据转存
 
-      // 在Normal模式下
-      if (sys_mode == SYS_MODE_NORMAL)
-      {
-        if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
-        {
+      // // 在Normal模式下
+      // if (sys_mode == SYS_MODE_NORMAL)
+      // {
+      //   if ((RxBuffer[rs485_rx_cnt - 1] == 0x0A) && (RxBuffer[rs485_rx_cnt - 2] == 0x0d))
+      //   {
 
-          RS485_Out((uint8_t *)&RxBuffer, rs485_rx_cnt);
+      //     RS485_Out((uint8_t *)&RxBuffer, rs485_rx_cnt);
 
-          RS485_Clear_Rx_Buff();
+      //     RS485_Clear_Rx_Buff();
 
-        }
-      }
-      else if (sys_mode == SYS_MODE_DEBUG)
-      {
-        rs485_state = RS485_WAITING_RESP;
-      }
+      //   }
+      // }
+      // else if (sys_mode == SYS_MODE_DEBUG)
+      // {
+      //   rs485_state = RS485_WAITING_RESP;
+      // }
+      rs485_state = RS485_WAITING_RESP;
       
     }
 }
@@ -69,14 +85,15 @@ void RS485_Receiver_TimeoutMode(void)
             rs485_resp_timer = RS485_RESP_TIME_MAX;
             rs485_state = RS485_TIMEOUT;
 
-            RS485_Out((uint8_t *)&RxBuffer, rs485_rx_cnt);
+            RS485_Out((char *)&RxBuffer);
 
             // if (gprs_state == GRPS_AT_MODE_READY)
             // {
             //   gprs_Send((uint8_t *)&RxBuffer, rs485_rx_cnt);
             // }
 
-            gprs_Send((uint8_t *)&RxBuffer, rs485_rx_cnt);
+            // gprs_Send((uint8_t *)&RxBuffer, rs485_rx_cnt);
+            gprs_Send((uint8_t *)&RxBuffer );
 
             RS485_Clear_Rx_Buff();
 
@@ -86,14 +103,15 @@ void RS485_Receiver_TimeoutMode(void)
 }
 
 
-void RS485_Out(uint8_t *pStr, uint8_t size){
+// void RS485_Out(uint8_t *pStr, uint8_t size){
 
-    uint8_t _buff[size+1];
+//     uint8_t _buff[size+1];
 
-    memcpy(_buff, pStr, size);
-    memcpy(_buff+size, "\xd", 1);
+//     memcpy(_buff, pStr, size);
+//     memcpy(_buff+size, "\xd", 1);
 
-    HAL_UART_Transmit(&h_rs485, _buff, size+1, 0xffff);
-    while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
+//     HAL_UART_Transmit(&h_rs485, _buff, size+1, 0xffff);
+//     while (HAL_USART_GetState(&h_rs485) == HAL_UART_STATE_BUSY_TX);
 
-}
+// }
+

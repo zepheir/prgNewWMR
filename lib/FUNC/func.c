@@ -58,14 +58,16 @@ void Update_State(void){
 
     if (SW1_state == RAISED)
     {
-        HAL_UART_Transmit(&huart1, "SW1_RAISED\r", 11, 0xffff);
+        // HAL_UART_Transmit(&huart1, "SW1_RAISED\r", 11, 0xffff);
+        RS485_Out("SW1_RAISED\r");
         //
         gprs_state = GPRS_SEND_AT_ENTM;
 
     }
     else if (SW1_state == FALLED)
     {
-        HAL_UART_Transmit(&huart1, "SW1_FALLED\r", 11, 0xffff);
+        // HAL_UART_Transmit(&huart1, "SW1_FALLED\r", 11, 0xffff);
+        RS485_Out("SW1_FALLED\r");
         
         gprs_state = GPRS_READY;
         
@@ -87,16 +89,20 @@ void Update_State(void){
             Led_Blink_Debug_Mode();
         }
 
-        // rs485 timeout mode 
-        RS485_Receiver_TimeoutMode();
+        // // rs485 timeout mode 
+        // RS485_Receiver_TimeoutMode();
         
-        gprs_Receiver_TimeoutMode();
+        // gprs_Receiver_TimeoutMode();
         break;
 
     default:
         break;
     }
 
+    // rs485 timeout mode
+    RS485_Receiver_TimeoutMode();
+
+    gprs_Receiver_TimeoutMode();
 }
 
 /**
@@ -110,7 +116,9 @@ void Run(void)
     switch (sys_mode)
     {
     case  SYS_MODE_NORMAL:
-        /* code */
+        if (gprs_state < GPRS_READY){
+            gprs_Ini();
+        }
         break;
     
     case SYS_MODE_DEBUG:

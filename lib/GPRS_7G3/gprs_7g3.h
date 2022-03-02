@@ -4,6 +4,8 @@
 #include "main.h"
 
 #define h_gprs huart2
+#define TCP_SERVER	"121.199.16.44"
+#define TCP_PORT		"6969"
 
 typedef enum{
   GPRS_RX_READY,
@@ -12,6 +14,11 @@ typedef enum{
 } GPRS_RX_STATE;
 
 typedef enum {
+    GPRS_INI,
+    GPRS_READ_IMEI,
+    GPRS_READ_IMEI_WAIT,
+    GPRS_GET_SERVER,
+    GPRS_GET_SERVER_WAIT,
     GPRS_READY,
     // GPRS_RX_WAITING_RESP,
     // GPRS_TIMEOUT,
@@ -21,16 +28,29 @@ typedef enum {
     GPRS_WAITING_A_OK,
     GRPS_AT_MODE_READY,
     GPRS_SEND_AT_ENTM,
-    GPRS_WAITING_AT_ENTM
+    GPRS_WAITING_AT_ENTM,
+    GPRS_REMOTE_REQ,
+    GPRS_REMOTE_REQ_WAIT,
 }GPRS_STATE;
+
+typedef struct 
+{
+  char imei[15];
+} GPRS_7G3;
+
 
 #define GPRS_RESP_TIMER_MAX 5 // 500ms
 
 void gprsReceiver(void);
 void gprs_Receiver_TimeoutMode(void);
-void gprs_Send(uint8_t *pStr, uint8_t size);
+void gprs_Send(char *pStr);
+
+// void gprs_Get_IMEI(void);
 void gprs_Enter_Setting(void);
 void gprs_Exit_At_Mode(void);
+
+void gprs_Ini(void);
+void gprs_Remote_Req(void);
 
 
 #endif // __GPRS_7G3_H__
