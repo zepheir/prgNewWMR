@@ -128,6 +128,8 @@ void gprs_Enter_Setting(void){
         if(gprsBuffer[0] == 'a'){
             RS485_Out((char *)gprsBuffer); 
             gprs_Clear_Rx_Buff();
+
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_REPLY_A;
         }
         break;
@@ -141,9 +143,12 @@ void gprs_Enter_Setting(void){
         if(strstr((char *)gprsBuffer, "+ok")){
         // if(strncmp(gprsBuffer, "+ok", 3) == 0){
             RS485_Out((char *)gprsBuffer);
+
             gprs_Clear_Rx_Buff();
-            gprs_state = GRPS_AT_MODE_READY;
+
             RS485_Out(">> Enter AT COMMAND MODE!");
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
+            gprs_state = GRPS_AT_MODE_READY;
         }
         break;
 
@@ -171,6 +176,7 @@ void gprs_Exit_At_Mode(void){
     case GPRS_WAITING_AT_ENTM:
         if(strncmp((char *)gprsBuffer, "at+entm\r\000\r\nOK\r\n", 15) == 0){
             RS485_Out(">> Exit AT COMMAND MODE!");
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_READY;
         }
         break;
@@ -202,6 +208,7 @@ void gprs_Ini(void){
             RS485_Out(">> IMEI:");
             strcpy(gprs_7g3.imei, pStr+6);
             RS485_Out(gprs_7g3.imei);
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_GET_SERVER;
         }
         break;
@@ -220,6 +227,7 @@ void gprs_Ini(void){
         if(pStr){
             RS485_Out(">> SERVER:");
             RS485_Out(pStr);
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_READY;
         }
         break;
@@ -233,6 +241,7 @@ void gprs_Ini(void){
 void gprs_Remote_Req(void){
     // char *pStr;
     char _buff[256];
+    uint32_t _data;
 
     switch (gprs_state)
     {
@@ -276,10 +285,29 @@ void gprs_Remote_Req(void){
             RS485_Out(_buff);
             // gprs_Send("{\"TYPE\":\"DATA\", \"IMEI\":\"865374057342316\",\"D0\":10,\"D1\":10,\"D2\":10,\"D3\":10}");
             gprs_Send(_buff);
+
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_REMOTE_SENDDATA_WAIT;
         }
         else if(strstr((char *)gprsBuffer, "SETDATA")){
             RS485_Out(">> GPRS REMOTE REPLY: SETDATA");
+
+            if(gprsBuffer[8] & 0x1){
+                memcpy(&_data, gprsBuffer+9, sizeof(_data));
+                para.ch[CH1] = _data;
+            }
+            if(gprsBuffer[8] & 0x2){
+                memcpy(&_data, gprsBuffer+13, sizeof(_data));
+                para.ch[CH2] = _data;
+            }
+            if(gprsBuffer[8] & 0x4){
+                memcpy(&_data, gprsBuffer+17, sizeof(_data));
+                para.ch[CH3] = _data;
+            }
+            if(gprsBuffer[8] & 0x8){
+                memcpy(&_data, gprsBuffer+21, sizeof(_data));
+                para.ch[CH4] = _data;
+            }
             
             memset(_buff, 0x00, sizeof(_buff));
             sprintf(_buff, "D0:%lu, D1:%lu, D2:%lu, D3:%lu",
@@ -289,6 +317,8 @@ void gprs_Remote_Req(void){
                     para.ch[CH4]);
 
             RS485_Out(_buff);
+            
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_READY;
         }
         else{
@@ -301,6 +331,8 @@ void gprs_Remote_Req(void){
         if (strstr((char *)gprsBuffer, "END"))
         {
             RS485_Out(">> GPRS REMOTE REPLY: END");
+
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_READY;
         }
         else{
