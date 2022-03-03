@@ -20,9 +20,10 @@ extern PARA para;
 GPRS_7G3 gprs_7g3;
 GPRS_STATE gprs_state;
 GPRS_RX_STATE gprs_rx_state;
-
+static uint8_t gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
 
 void gprs_Clear_Rx_Buff(void);
+void gprs_Remote_Timeout(void);
 
 void gprs_Clear_Rx_Buff(void)
 {
@@ -325,8 +326,10 @@ void gprs_Remote_Req(void){
             gprs_state = GPRS_READY;
         }
         else{
-            RS485_Out(">> GPRS REMOTE REQ WAITING ...");
+
+            gprs_Remote_Timeout();
         }
+            
         
         break;
 
@@ -339,11 +342,33 @@ void gprs_Remote_Req(void){
             gprs_state = GPRS_READY;
         }
         else{
-            RS485_Out(">> GPRS REMOTE SENDDATA WAITING ...");
+            gprs_Remote_Timeout();
         }
+
         break;
     
     default:
         break;
+    }
+}
+
+void gprs_Remote_Timeout(void)
+{
+    if (gprs_remote_timer > 0)
+    {
+        gprs_remote_timer--;
+        RS485_Out(">> GPRS REMOTE REQ WAITING ...");
+    }
+    else
+    {
+        
+        RS485_Out(">> GPRS REMOTE REQ TIMEOUT!!! 7S3 Moduel Reboot!!!");
+        gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
+        memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
+
+        // reset gprs_7s3 module
+        gprs_Send("usr.cn#at+z\r");
+        
+        gprs_state = GPRS_READY;
     }
 }

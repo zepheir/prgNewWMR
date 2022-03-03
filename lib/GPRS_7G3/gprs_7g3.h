@@ -4,6 +4,7 @@
 #include "main.h"
 
 #define h_gprs huart2
+#define GPRS_REMOTE_TIMEOUT_MAX 10
 #define TCP_SERVER	"121.199.16.44"
 #define TCP_PORT		"6969"
 
@@ -33,7 +34,8 @@ typedef enum {
     GPRS_REMOTE_REQ_WAIT,
     GPRS_REMOTE_SENDDATA,
     GPRS_REMOTE_SENDDATA_WAIT,
-    GPRS_REMOTE_SETDATA
+    GPRS_REMOTE_SETDATA,
+    GPRS_REMOTE_TIMEOUT
 }GPRS_STATE;
 
 typedef struct 
