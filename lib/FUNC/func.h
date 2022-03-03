@@ -13,6 +13,7 @@ typedef enum {
 
 //
 typedef enum {
+    SYS_MODE_INI,
     SYS_MODE_NORMAL,
     SYS_MODE_FACTORY_LOAD,
     SYS_MODE_REMOTE,
