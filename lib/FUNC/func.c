@@ -53,7 +53,7 @@ uint8_t get_flash_offset_address(void);
  */
 void Update_State(void){
 
-    if(sys_mode != SYS_MODE_REMOTE){
+    if(sys_mode != SYS_MODE_REMOTE && sys_mode != SYS_MODE_INI){
         sys_mode = SystemModeSelect();
     }
     
@@ -89,6 +89,11 @@ void Update_State(void){
     // 
     switch (sys_mode)
     {
+
+    case SYS_MODE_INI:
+        Led_Blink_REQ_Mode();
+        break;
+        
     case  SYS_MODE_NORMAL:
         Led_Blink_Normal_Mode();
 
@@ -102,10 +107,6 @@ void Update_State(void){
             Led_Blink_Debug_Mode();
         }
 
-        // // rs485 timeout mode 
-        // RS485_Receiver_TimeoutMode();
-        
-        // gprs_Receiver_TimeoutMode();
         break;
 
     case SYS_MODE_REMOTE:
@@ -132,10 +133,23 @@ void Run(void)
 
     switch (sys_mode)
     {
-    case  SYS_MODE_NORMAL:
-        if (gprs_state < GPRS_READY){
+
+    case SYS_MODE_INI:
+        if (gprs_state < GPRS_READY)
+        {
             gprs_Ini();
         }
+        else if (gprs_state == GPRS_READY)
+        {
+            sys_mode = SystemModeSelect();
+        }
+        
+        break;
+
+    case  SYS_MODE_NORMAL:
+        // if (gprs_state < GPRS_READY){
+        //     gprs_Ini();
+        // }
         
         break;
     

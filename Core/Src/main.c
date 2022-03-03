@@ -110,7 +110,8 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  sys_mode = SystemModeSelect();
+  // sys_mode = SystemModeSelect();
+  sys_mode = SYS_MODE_INI;
 
   Para_Init();
 
