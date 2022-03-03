@@ -3,6 +3,8 @@
 #include "usart.h"
 #include "rs485.h"
 #include "gprs_7g3.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef enum{
     HIGH,
@@ -132,6 +134,7 @@ void Update_State(void){
  */
 void Run(void)
 {
+    char *_buff[64];
 
     switch (sys_mode)
     {
@@ -143,8 +146,8 @@ void Run(void)
         }
         else if (gprs_state == GPRS_READY)
         {
-            sys_mode = SystemModeSelect();
-            // sys_mode = SYS_MODE_REMOTE;
+            // sys_mode = SystemModeSelect();
+            sys_mode = SYS_MODE_REMOTE;
         }
         
         break;
@@ -156,6 +159,8 @@ void Run(void)
 
         if(remote_req_timer>0){
             remote_req_timer--;
+            sprintf(_buff, ">> remote req timer: %d", remote_req_timer);
+            RS485_Out(_buff);
         }else{
             remote_req_timer = REMOTE_REQ_TIMER_MAX;
             sys_mode = SYS_MODE_REMOTE;
@@ -178,6 +183,7 @@ void Run(void)
         gprs_Remote_Req();
         if (gprs_state == GPRS_READY)
         {
+            remote_req_timer = REMOTE_REQ_TIMER_MAX;
             sys_mode = SYS_MODE_NORMAL;
         }
         

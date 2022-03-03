@@ -205,8 +205,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (pwr_check_state == READY)
     {
       pwr_check_state = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, (uint8_t *)"PWR_TRIGGED\r", 12, 0xffff);
       UserWrite();
+      HAL_UART_Transmit(&h_rs485, (uint8_t *)"PWR_TRIGGED\r", 12, 0xffff);
       // exit_trig_state = PWR_TRIGGED;
     }
   }

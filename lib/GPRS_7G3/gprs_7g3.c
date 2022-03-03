@@ -196,7 +196,13 @@ void gprs_Ini(void){
     {
     case GPRS_INI:
         RS485_Out(">> GPRS INITIAL ...\r");
-        gprs_state = GPRS_READ_IMEI;
+        if (HAL_GPIO_ReadPin(GPRS_NET_GPIO_Port, GPRS_NET_Pin) == GPIO_PIN_RESET)
+        {
+            gprs_state = GPRS_READ_IMEI;
+        }
+        break;
+    
+    case GPRS_READ_IMEI:
         // gprs_Get_IMEI();
         RS485_Out(">> Read IMEI ...\r");
         
@@ -209,7 +215,7 @@ void gprs_Ini(void){
         pStr = strstr((char *)gprsBuffer, "+IMEI:");
         if(pStr){
             RS485_Out(">> IMEI:");
-            strcpy(gprs_7g3.imei, pStr+6);
+            memcpy(gprs_7g3.imei, pStr+6, 15);
             RS485_Out(gprs_7g3.imei);
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_GET_CSQ;
