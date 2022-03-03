@@ -227,7 +227,10 @@ void gprs_Ini(void){
         if(pStr){
             RS485_Out(">> SERVER:");
             RS485_Out(pStr);
+
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
+
+            RS485_Out(">> INI OK!");
             gprs_state = GPRS_READY;
         }
         break;
