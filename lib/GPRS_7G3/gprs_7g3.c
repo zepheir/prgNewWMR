@@ -23,7 +23,7 @@ GPRS_RX_STATE gprs_rx_state;
 static uint8_t gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
 
 void gprs_Clear_Rx_Buff(void);
-void gprs_Remote_Timeout(void);
+void gprs_Module_Timeout(void);
 
 void gprs_Clear_Rx_Buff(void)
 {
@@ -190,7 +190,7 @@ void gprs_Exit_At_Mode(void){
 
 void gprs_Ini(void){
     char *pStr;
-    // char _buff[64];
+    char _buff[3];
 
     switch (gprs_state)
     {
@@ -199,6 +199,8 @@ void gprs_Ini(void){
         gprs_state = GPRS_READ_IMEI;
         // gprs_Get_IMEI();
         RS485_Out(">> Read IMEI ...\r");
+        
+        memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
         gprs_Send("usr.cn#at+imei\r");
         gprs_state = GPRS_READ_IMEI_WAIT;
         break;
@@ -210,7 +212,30 @@ void gprs_Ini(void){
             strcpy(gprs_7g3.imei, pStr+6);
             RS485_Out(gprs_7g3.imei);
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
+            gprs_state = GPRS_GET_CSQ;
+        }
+        else{
+            gprs_Module_Timeout();
+        }
+        break;
+
+    case GPRS_GET_CSQ:
+        RS485_Out(">> GPRS Get CSQ ...");
+        gprs_Send("usr.cn#at+csq\r");
+        gprs_state = GPRS_GET_CSQ_WAIT;
+        break;
+
+    case GPRS_GET_CSQ_WAIT:
+        pStr = strstr((char *)gprsBuffer, "+CSQ:");
+        if(pStr){
+            
+            memcpy(_buff, pStr+5,3);
+            gprs_7g3.csq = atoi(_buff);
+
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_GET_SERVER;
+        }else{
+            gprs_Module_Timeout();
         }
         break;
     
@@ -233,6 +258,8 @@ void gprs_Ini(void){
 
             RS485_Out(">> INI OK!");
             gprs_state = GPRS_READY;
+        }else{
+            gprs_Module_Timeout();
         }
         break;
     
@@ -327,7 +354,7 @@ void gprs_Remote_Req(void){
         }
         else{
 
-            gprs_Remote_Timeout();
+            gprs_Module_Timeout();
         }
             
         
@@ -342,7 +369,7 @@ void gprs_Remote_Req(void){
             gprs_state = GPRS_READY;
         }
         else{
-            gprs_Remote_Timeout();
+            gprs_Module_Timeout();
         }
 
         break;
@@ -352,17 +379,17 @@ void gprs_Remote_Req(void){
     }
 }
 
-void gprs_Remote_Timeout(void)
+void gprs_Module_Timeout(void)
 {
     if (gprs_remote_timer > 0)
     {
         gprs_remote_timer--;
-        RS485_Out(">> GPRS REMOTE REQ WAITING ...");
+        RS485_Out(">> GPRS MODULE/REMOTE REQ WAITING ...");
     }
     else
     {
         
-        RS485_Out(">> GPRS REMOTE REQ TIMEOUT!!! 7S3 Moduel Reboot!!!");
+        RS485_Out(">> GPRS MODUEL/REMOTE REQ TIMEOUT!!! 7S3 Moduel Reboot!!!");
         gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
         memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
 

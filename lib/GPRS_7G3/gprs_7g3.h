@@ -4,7 +4,7 @@
 #include "main.h"
 
 #define h_gprs huart2
-#define GPRS_REMOTE_TIMEOUT_MAX 10
+#define GPRS_REMOTE_TIMEOUT_MAX 20
 #define TCP_SERVER	"121.199.16.44"
 #define TCP_PORT		"6969"
 
@@ -18,6 +18,8 @@ typedef enum {
     GPRS_INI,
     GPRS_READ_IMEI,
     GPRS_READ_IMEI_WAIT,
+    GPRS_GET_CSQ,
+    GPRS_GET_CSQ_WAIT,
     GPRS_GET_SERVER,
     GPRS_GET_SERVER_WAIT,
     GPRS_READY,
@@ -41,6 +43,7 @@ typedef enum {
 typedef struct 
 {
   char imei[15];
+  int16_t csq; // 信号强度
 } GPRS_7G3;
 
 
