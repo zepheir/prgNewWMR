@@ -3,6 +3,9 @@
 
 #include "para.h"
 
+
+#define REMOTE_REQ_TIMER_MAX  600 // 10分钟
+
 typedef enum {
     READY = 0,
     TRIGGED,

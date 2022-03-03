@@ -11,6 +11,8 @@ typedef enum{
     RAISED
 } GPIO_STATE;
 
+static uint16_t remote_req_timer = REMOTE_REQ_TIMER_MAX;
+
 static GPIO_STATE SW1_state = HIGH;
 static uint8_t led_count=10;
 extern SYS_MODE sys_mode;
@@ -142,6 +144,7 @@ void Run(void)
         else if (gprs_state == GPRS_READY)
         {
             sys_mode = SystemModeSelect();
+            // sys_mode = SYS_MODE_REMOTE;
         }
         
         break;
@@ -150,6 +153,13 @@ void Run(void)
         // if (gprs_state < GPRS_READY){
         //     gprs_Ini();
         // }
+
+        if(remote_req_timer>0){
+            remote_req_timer--;
+        }else{
+            remote_req_timer = REMOTE_REQ_TIMER_MAX;
+            sys_mode = SYS_MODE_REMOTE;
+        }
         
         break;
     
