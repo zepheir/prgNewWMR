@@ -4,7 +4,7 @@
 #include "main.h"
 
 #define h_gprs huart2
-#define GPRS_REMOTE_TIMEOUT_MAX 20
+#define GPRS_REMOTE_TIMEOUT_MAX 60
 #define TCP_SERVER	"121.199.16.44"
 #define TCP_PORT		"6969"
 

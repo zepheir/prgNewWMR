@@ -195,6 +195,7 @@ void Run(void)
 }
 
 void DI_Filter(void){
+    char *buff[64];
 
     if(pwr_check_state == TRIGGED){
         pwr_check_state = FILTERING;
@@ -223,6 +224,9 @@ void DI_Filter(void){
     for (uint8_t i = 0; i < 4; i++)
     {
         if (ch_state[i] == FILTERING){
+
+            sprintf(buff, ">> CH[%d] Filter: %d", i+1, filter.ch[i]);
+            RS485_Out(buff);
 
             if(filter.ch[i] > 0){
                 filter.ch[i]--;
