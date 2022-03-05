@@ -214,6 +214,7 @@ void gprs_Ini(void){
     case GPRS_READ_IMEI_WAIT:
         pStr = strstr((char *)gprsBuffer, "+IMEI:");
         if(pStr){
+            gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
             RS485_Out(">> IMEI:");
             memcpy(gprs_7g3.imei, pStr+6, 15);
             RS485_Out(gprs_7g3.imei);
@@ -235,6 +236,7 @@ void gprs_Ini(void){
         pStr = strstr((char *)gprsBuffer, "+CSQ:");
         if(pStr){
             
+            gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
             memcpy(_buff, pStr+5,3);
             gprs_7g3.csq = atoi(_buff);
 
@@ -257,6 +259,7 @@ void gprs_Ini(void){
     case GPRS_GET_SERVER_WAIT:
         pStr = strstr((char *)gprsBuffer, "+SOCKA:");
         if(pStr){
+            gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
             RS485_Out(">> SERVER:");
             RS485_Out(pStr);
 
@@ -303,6 +306,7 @@ void gprs_Remote_Req(void){
 
         if(strstr((char *)gprsBuffer, "READALL")){
             RS485_Out(">> GPRS REMOTE REPLY: READALL");
+            gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
 
             memset(_buff, 0x00, sizeof(_buff));
             sprintf(_buff, 
@@ -328,6 +332,7 @@ void gprs_Remote_Req(void){
         }
         else if(strstr((char *)gprsBuffer, "SETDATA")){
             RS485_Out(">> GPRS REMOTE REPLY: SETDATA");
+            gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
 
             if(gprsBuffer[8] & 0x1){
                 memcpy(&_data, gprsBuffer+9, sizeof(_data));
@@ -370,6 +375,7 @@ void gprs_Remote_Req(void){
         if (strstr((char *)gprsBuffer, "END"))
         {
             RS485_Out(">> GPRS REMOTE REPLY: END");
+            gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
 
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_READY;
@@ -387,10 +393,13 @@ void gprs_Remote_Req(void){
 
 void gprs_Module_Timeout(void)
 {
+    char *buff[64];
+
     if (gprs_remote_timer > 0)
     {
         gprs_remote_timer--;
-        RS485_Out(">> GPRS MODULE/REMOTE REQ WAITING ...");
+        sprintf(buff, ">> GPRS MODULE/REMOTE REQ WAITING ...(%d)", gprs_remote_timer);
+        RS485_Out(buff);
     }
     else
     {
