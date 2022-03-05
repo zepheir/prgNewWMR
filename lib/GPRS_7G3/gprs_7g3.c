@@ -279,7 +279,7 @@ void gprs_Ini(void){
 
 
 void gprs_Remote_Req(void){
-    // char *pStr;
+    char *pStr;
     char _buff[256];
     uint32_t _data;
 
@@ -287,7 +287,28 @@ void gprs_Remote_Req(void){
     {
     case GPRS_READY:
         RS485_Out(">> GPRS Remote Start...");
-        gprs_state = GPRS_REMOTE_REQ;
+        gprs_state = GPRS_GET_CSQ;
+        break;
+
+    case GPRS_GET_CSQ:
+        RS485_Out(">> GPRS Get CSQ ...");
+        gprs_Send("usr.cn#at+csq\r");
+        gprs_state = GPRS_GET_CSQ_WAIT;
+        break;
+
+    case GPRS_GET_CSQ_WAIT:
+        pStr = strstr((char *)gprsBuffer, "+CSQ:");
+        if(pStr){
+            
+            gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
+            memcpy(_buff, pStr+5,3);
+            gprs_7g3.csq = atoi(_buff);
+
+            memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
+            gprs_state = GPRS_REMOTE_REQ;
+        }else{
+            gprs_Module_Timeout();
+        }
         break;
 
     case GPRS_REMOTE_REQ:
