@@ -30,6 +30,14 @@ typedef enum {
     GPRS_REPLY_A,
     GPRS_WAITING_A_OK,
     GRPS_AT_MODE_READY,
+    GPRS_FACTORY_SETTING,
+    GPRS_SET_UATEN,
+    GPRS_SET_UATEN_WAIT,
+    GPRS_SET_HEARTEN_OFF,
+    GPRS_SET_HEARTEN_OFF_WAIT,
+    GPRS_SET_SERVER,
+    GPRS_SET_SERVER_WAIT,
+    GPRS_FACTORY_SETTING_OK,
     GPRS_SEND_AT_ENTM,
     GPRS_WAITING_AT_ENTM,
     GPRS_REMOTE_REQ,
@@ -59,6 +67,8 @@ void gprs_Exit_At_Mode(void);
 
 void gprs_Ini(void);
 void gprs_Remote_Req(void);
+
+void gprs_Factory_Setting(void);
 
 
 #endif // __GPRS_7G3_H__

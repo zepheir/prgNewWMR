@@ -27,7 +27,7 @@ void Update_State(void);
 
 void Run(void);
 
-SYS_MODE SystemModeSelect(void);
+// SYS_MODE SystemModeSelect(void);
 
 // 擦除一个flash page
 void UserErase(void);

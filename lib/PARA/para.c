@@ -23,7 +23,7 @@ void Para_Init(void)
     // UserErase();
     // HAL_FLASH_Lock();
 
-    if (sys_mode == SYS_MODE_FACTORY_LOAD || *(__IO uint32_t *)(_addr + 0x1c) == 0xffffffff)
+    if (*(__IO uint32_t *)(_addr + 0x1c) == 0xffffffff)
     {
         Para_Factory();
     }

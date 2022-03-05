@@ -16,6 +16,8 @@ typedef enum{
 static uint16_t remote_req_timer = REMOTE_REQ_TIMER_MAX;
 
 static GPIO_STATE SW1_state = HIGH;
+static GPIO_STATE SW2_state = HIGH;
+static GPIO_STATE SW3_state = HIGH;
 static uint8_t led_count=10;
 extern SYS_MODE sys_mode;
 
@@ -37,7 +39,10 @@ extern GPRS_STATE gprs_state;
 
 
 // private functions define
+void SystemModeSelect(void);
 void SW1_State_Change(void);
+void SW2_State_Change(void);
+void SW3_State_Change(void);
 void DI_Filter(void);
 void Led_Blink_Normal_Mode(void);
 void Led_Blink_Debug_Mode(void);
@@ -57,52 +62,20 @@ uint8_t get_flash_offset_address(void);
  */
 void Update_State(void){
 
-    if(sys_mode != SYS_MODE_REMOTE && sys_mode != SYS_MODE_INI){
-        sys_mode = SystemModeSelect();
-    }
+    // if(sys_mode != SYS_MODE_REMOTE && sys_mode != SYS_MODE_INI){
+    //     // sys_mode = SystemModeSelect();
+    //     SystemModeSelect();
+    // }
+    SystemModeSelect();
     
 
-    SW1_State_Change();
-
-    if (SW1_state == RAISED)
-    {
-        // HAL_UART_Transmit(&huart1, "SW1_RAISED\r", 11, 0xffff);
-        RS485_Out("SW1_RAISED\r");
-        //
-        if(sys_mode == SYS_MODE_DEBUG){
-            gprs_state = GPRS_SEND_AT_ENTM;
-        }
-
-    }
-    else if (SW1_state == FALLED)
-    {
-        // HAL_UART_Transmit(&huart1, "SW1_FALLED\r", 11, 0xffff);
-        RS485_Out("SW1_FALLED\r");
-        
-        if(sys_mode == SYS_MODE_DEBUG){
-            gprs_state = GPRS_READY;
-        }else if(sys_mode == SYS_MODE_NORMAL){
-            sys_mode = SYS_MODE_REMOTE;
-        }
-        
-    }
-
     DI_Filter();
-
 
     // 
     switch (sys_mode)
     {
-
-    case SYS_MODE_INI:
-        Led_Blink_REQ_Mode();
-        break;
-        
     case  SYS_MODE_NORMAL:
         Led_Blink_Normal_Mode();
-
-
-
         break;
     case SYS_MODE_DEBUG:
         if(gprs_state == GRPS_AT_MODE_READY){
@@ -110,13 +83,12 @@ void Update_State(void){
         }else{
             Led_Blink_Debug_Mode();
         }
-
         break;
-
-    case SYS_MODE_REMOTE:
+    case SYS_MODE_INI:
+    case SYS_MODE_REMOTE: 
+    case SYS_MODE_FACTORY_LOAD:
         Led_Blink_REQ_Mode();
         break;
-
     default:
         break;
     }
@@ -134,7 +106,7 @@ void Update_State(void){
  */
 void Run(void)
 {
-    char *_buff[64];
+    char buff[64];
 
     switch (sys_mode)
     {
@@ -146,8 +118,12 @@ void Run(void)
         }
         else if (gprs_state == GPRS_READY)
         {
-            // sys_mode = SystemModeSelect();
-            sys_mode = SYS_MODE_REMOTE;
+            // SystemModeSelect();
+            // if(sys_mode == SYS_MODE_NORMAL){
+            //     sys_mode = SYS_MODE_REMOTE;
+            // }
+            sys_mode = SYS_MODE_NORMAL;
+            remote_req_timer = 0;
         }
         
         break;
@@ -159,8 +135,8 @@ void Run(void)
 
         if(remote_req_timer>0){
             remote_req_timer--;
-            sprintf(_buff, ">> remote req timer: %d", remote_req_timer);
-            RS485_Out(_buff);
+            sprintf(buff, ">> remote req timer: %d", remote_req_timer);
+            RS485_Out(buff);
         }else{
             remote_req_timer = REMOTE_REQ_TIMER_MAX;
             sys_mode = SYS_MODE_REMOTE;
@@ -169,7 +145,7 @@ void Run(void)
         break;
     
     case SYS_MODE_DEBUG:
-        if (SW1_state == LOW)
+        if (SW1_state == LOW && SW2_state == HIGH)
         {
             gprs_Enter_Setting();
         }else {
@@ -189,13 +165,21 @@ void Run(void)
         
         break;
 
+    case SYS_MODE_FACTORY_LOAD:
+        gprs_Factory_Setting();
+        if(gprs_state == GPRS_READY){
+            remote_req_timer = REMOTE_REQ_TIMER_MAX;
+            sys_mode = SYS_MODE_NORMAL;
+        }
+        break;
+
     default:
         break;
     }
 }
 
 void DI_Filter(void){
-    char *buff[64];
+    char buff[64];
 
     if(pwr_check_state == TRIGGED){
         pwr_check_state = FILTERING;
@@ -362,33 +346,57 @@ void UserWrite(void)
 }
 
 
-
-SYS_MODE SystemModeSelect(void)
+void SystemModeSelect(void)
 {
-    SYS_MODE _mode;
+    SW1_State_Change();
+    SW2_State_Change();
+    SW3_State_Change();
 
-    uint8_t sw;
-
-    sw = HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin);
-    sw = sw | (HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin) << 1);
-    // sw = sw | (HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin) << 2);
-
-    switch (sw)
+    if(sys_mode == SYS_MODE_NORMAL)
     {
-    case 0x1: // 3 - 2 
-        _mode = SYS_MODE_DEBUG;
-        break;
- 
-    case 0x0: // 3 - 3
-        _mode = SYS_MODE_FACTORY_LOAD;
-        break;
-    
-    default:
-        _mode = SYS_MODE_NORMAL;
-        break;
-    }
+        if(SW3_state == FALLED){
+            RS485_Out(">> ENTER DEBUG MODE!!!\r");
+        }
+        else if(SW3_state == LOW){
+            sys_mode = SYS_MODE_DEBUG;
+        }
 
-    return _mode;
+        if(SW1_state == FALLED){
+
+            sys_mode = SYS_MODE_REMOTE;
+        }
+    }
+    else if(sys_mode == SYS_MODE_DEBUG){
+        if (SW3_state == RAISED)
+        {
+            RS485_Out(">> EXIT DEBUG MODE! \r");
+            sys_mode = SYS_MODE_NORMAL;
+        }
+
+        if (SW2_state == FALLED)
+        {
+            if(gprs_state == GRPS_AT_MODE_READY){
+                RS485_Out(">> PARA FACTORY ...");
+                sys_mode = SYS_MODE_FACTORY_LOAD;
+                gprs_state = GPRS_FACTORY_SETTING;
+            }
+
+        }
+
+        if (SW1_state == RAISED)
+        {
+            // HAL_UART_Transmit(&huart1, "SW1_RAISED\r", 11, 0xffff);
+            RS485_Out("SW1_RAISED\r");
+            //
+            gprs_state = GPRS_SEND_AT_ENTM;
+
+        }
+        else if (SW1_state == FALLED)
+        {
+            // HAL_UART_Transmit(&huart1, "SW1_FALLED\r", 11, 0xffff);
+            gprs_state = GPRS_READY;
+        }
+    }
 }
 
 void SW1_State_Change(void){
@@ -397,6 +405,7 @@ void SW1_State_Change(void){
         if (SW1_state == HIGH || SW1_state == RAISED)
         {
             SW1_state = FALLED;
+            RS485_Out("SW1_FALLED\r");
         }else if(SW1_state == FALLED){
             SW1_state = LOW;
         }
@@ -406,12 +415,63 @@ void SW1_State_Change(void){
         if (SW1_state == LOW || SW1_state == FALLED)
         {
             SW1_state = RAISED;
+            RS485_Out("SW1_RAISED\r");
         }else if(SW1_state == RAISED){
             SW1_state = HIGH;
         }
     }
     
 }
+
+void SW2_State_Change(void){
+    if (HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin) == GPIO_PIN_RESET)
+    {
+        if (SW2_state == HIGH || SW2_state == RAISED)
+        {
+            SW2_state = FALLED;
+            RS485_Out("SW2_FALLED\r");
+        }else if(SW2_state == FALLED){
+            SW2_state = LOW;
+        }
+        
+    }else{
+
+        if (SW2_state == LOW || SW2_state == FALLED)
+        {
+            SW2_state = RAISED;
+            RS485_Out("SW2_RAISED\r");
+        }else if(SW2_state == RAISED){
+            SW2_state = HIGH;
+        }
+    }
+    
+}
+
+
+void SW3_State_Change(void){
+    if (HAL_GPIO_ReadPin(SW3_GPIO_Port, SW3_Pin) == GPIO_PIN_RESET)
+    {
+        if (SW3_state == HIGH || SW3_state == RAISED)
+        {
+            SW3_state = FALLED;
+            RS485_Out("SW3_FALLED\r");
+        }else if(SW3_state == FALLED){
+            SW3_state = LOW;
+        }
+        
+    }else{
+
+        if (SW3_state == LOW || SW3_state == FALLED)
+        {
+            SW3_state = RAISED;
+            RS485_Out("SW3_RAISED\r");
+        }else if(SW3_state == RAISED){
+            SW3_state = HIGH;
+        }
+    }
+    
+}
+
 
 void Led_Blink_Normal_Mode(void)
 {
@@ -436,21 +496,17 @@ void Led_Blink_Normal_Mode(void)
 
 void Led_Blink_Debug_Mode(void)
 {
-    if (led_count > 0)
-    {
+    if (led_count > 0){
         led_count--;
     }
-    else
-    {
+    else{
         led_count = 10;
     }
 
-    if (led_count > 5)
-    {
+    if (led_count > 5){
         HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_SET);
     }
-    else
-    {
+    else{
         HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_RESET);
     }
 }

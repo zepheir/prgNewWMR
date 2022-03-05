@@ -175,7 +175,7 @@ void gprs_Exit_At_Mode(void){
         break;
 
     case GPRS_WAITING_AT_ENTM:
-        if(strncmp((char *)gprsBuffer, "at+entm\r\000\r\nOK\r\n", 15) == 0){
+        if(strstr((char *)gprsBuffer, "at+entm\r\000\r\nOK\r\n") == 0){
             RS485_Out(">> Exit AT COMMAND MODE!");
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_READY;
@@ -434,4 +434,66 @@ void gprs_Module_Timeout(void)
         
         gprs_state = GPRS_READY;
     }
+}
+
+
+void gprs_Factory_Setting(void){
+
+
+
+    switch (gprs_state)
+    {
+    case GPRS_FACTORY_SETTING: 
+        RS485_Out(">> GPRS FACTORY SETTING...\r");
+        gprs_state = GPRS_SET_UATEN;
+        break;
+
+    case GPRS_SET_UATEN:
+        RS485_Out(">> GPRS SET UARTEN\r");
+        gprs_Send("at+uaten=\"on\"");
+        gprs_state = GPRS_SET_UATEN_WAIT;
+        break;
+    case GPRS_SET_UATEN_WAIT:
+        if(strstr((char *)gprsBuffer, "at+uaten=\"on\"\r\r\nOK")){
+            RS485_Out(">> GPRS SET UARTEN OK!");
+            gprs_state = GPRS_SET_HEARTEN_OFF;
+        }
+        break;
+    case GPRS_SET_HEARTEN_OFF:
+        RS485_Out(">> GPRS SET HEARTEN OFF...");
+        gprs_Send("at+hearten=\"off\"");
+        gprs_state = GPRS_SET_HEARTEN_OFF_WAIT;
+        break;
+    case GPRS_SET_HEARTEN_OFF_WAIT:
+        if(strstr((char *)gprsBuffer, "at+hearten=\"off\"\r\r\nOK"))
+        {
+            RS485_Out(">> GPRS SET HEARTEN OFF OK!");
+            gprs_state = GPRS_SET_SERVER;
+        }
+        break;
+
+    case GPRS_SET_SERVER:
+        RS485_Out(">> GPRS SET SERVER:\r");
+        gprs_Send("at+socka=\"TCP\",\"121.199.16.44\",6969");
+        gprs_state = GPRS_SET_SERVER_WAIT;
+        break;
+    
+    case GPRS_SET_SERVER_WAIT:
+        if(strstr((char *)gprsBuffer, "at+socka=\"TCP\",\"121.199.16.44\",6969\r\r\nOK")){
+            RS485_Out(">> GPRS SET SERVER OK!\r");
+            gprs_state = GPRS_FACTORY_SETTING_OK;
+        }
+
+        break;
+
+    case GPRS_FACTORY_SETTING_OK:
+        RS485_Out(">> GPRS FACTORY SETTING OK!\r");
+        gprs_Send("at+s\r");
+        gprs_state = GPRS_READY;
+        break;
+    
+    default:
+        break;
+    }
+
 }
