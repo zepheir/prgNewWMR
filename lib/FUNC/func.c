@@ -3,6 +3,8 @@
 #include "usart.h"
 #include "rs485.h"
 #include "gprs_7g3.h"
+#include "oled.h"
+#include "u8g2.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,6 +35,9 @@ extern uint8_t aRxBuffer;
 extern uint8_t RxBuffer[256];
 
 extern GPRS_STATE gprs_state;
+
+u8g2_t u8g2;
+
 //
 
 
@@ -49,6 +54,13 @@ static uint16_t flash_addr_offset;
 // private functions define
 uint8_t get_flash_offset_address(void);
 
+
+void Init(void){
+    
+    Para_Init();
+
+    // u8g2Init(&u8g2);
+}
 
 /**
  * @brief 这个函数在main()里面的100ms循环里面,
@@ -192,6 +204,20 @@ void Run(void)
     default:
         break;
     }
+
+
+    //  OLED draw something
+    // u8g2_SendBuffer(&u8g2);
+    // u8g2_DrawBox(&u8g2, 0,0,20,20);
+    // u8g2_DrawBox(&u8g2, 20,20,20,20);
+    // u8g2_SendBuffer(&u8g2);
+    // u8g2_DrawFrame(&u8g2, 10, 40, 20, 20);
+    // u8g2_SendBuffer(&u8g2);
+    // u8g2_SetFont(&u8g2, u8g2_font_DigitalDiscoThin_tf);
+    // u8g2_DrawStr(&u8g2, 20, 10, "free");
+    // u8g2_SendBuffer(&u8g2);
+
+
 }
 
 void DI_Filter(void){

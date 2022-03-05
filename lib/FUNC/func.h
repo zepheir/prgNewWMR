@@ -23,8 +23,8 @@ typedef enum {
     SYS_MODE_DEBUG
 } SYS_MODE;
 
+void Init(void);
 void Update_State(void);
-
 void Run(void);
 
 SYS_MODE SystemModeSelect(void);
