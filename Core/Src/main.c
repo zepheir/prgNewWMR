@@ -210,7 +210,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       // exit_trig_state = PWR_TRIGGED;
     }
   }
-  else if (GPIO_Pin == DI_1_Pin)
+  else if (GPIO_Pin == DI_3_Pin)
   {
 
     if (ch_state[CH1] == READY)
@@ -220,7 +220,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     // exit_trig_state = DI1_TRIGGED;
   }
-  else if (GPIO_Pin == DI_2_Pin)
+  else if (GPIO_Pin == DI_4_Pin)
   {
     if (ch_state[CH2] == READY)
     {
@@ -229,7 +229,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     }
     // exit_trig_state = DI2_TRIGGED;
   }
-  else if (GPIO_Pin == DI_3_Pin)
+  else if (GPIO_Pin == DI_1_Pin)
   {
     if (ch_state[CH3] == READY)
     {
@@ -237,7 +237,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       HAL_UART_Transmit(&h_rs485, (uint8_t *)"DI3_TRIGGED\r", 12, 0xffff);
     }
   }
-  else if (GPIO_Pin == DI_4_Pin)
+  else if (GPIO_Pin == DI_2_Pin)
   {
     if (ch_state[CH4] == READY)
     {
