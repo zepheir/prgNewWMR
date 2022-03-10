@@ -306,7 +306,12 @@ void gprs_Ini(void){
         if(pStr){
             
             gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
-            memcpy(_buff, pStr+5,3);
+            if(gprs.type == TYPE_7G3){
+                memcpy(_buff, pStr + 5, 3);
+            }else if(gprs.type == TYPE_7G4){
+                memcpy(_buff, pStr + 6, 3);
+            }
+            if(_buff[2] == ',') _buff[2] = 0;
             gprs.csq = atoi(_buff);
 
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
@@ -361,8 +366,25 @@ void gprs_Remote_Req(void){
     switch (gprs_state)
     {
     case GPRS_READY:
-        RS485_Out(">> GPRS Remote Start...");
-        gprs_state = GPRS_GET_CSQ;
+        if(gprs.link == GPRS_LINK_ON){
+            RS485_Out(">> GPRS Remote Start...");
+            gprs_state = GPRS_GET_CSQ;
+        }
+        else{
+            RS485_Out(">> GPRS Link is OFF!!! ");
+
+            // reset gprs_7sx module
+            if (gprs.type == TYPE_7G3)
+            {
+                gprs_Send("usr.cn#at+z\r");
+            }
+            else if (gprs.type == TYPE_7G4)
+            {
+                gprs_Send("usr.cnat+z\r");
+            }
+
+            gprs_state = GPRS_READY;
+        }
         break;
 
     case GPRS_GET_CSQ:
