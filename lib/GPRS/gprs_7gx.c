@@ -256,6 +256,7 @@ void gprs_Ini(void){
         }
         else {
             RS485_Out(">> GPRS Type Check Fail!");
+            gprs_Module_Timeout();
             gprs.type = TYPE_NONE;
         }
         break;
