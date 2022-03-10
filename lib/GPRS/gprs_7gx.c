@@ -1,4 +1,4 @@
-#include "gprs_7g3.h"
+#include "gprs_7gx.h"
 #include "rs485.h"
 // #include "main.h"
 #include "func.h"
@@ -17,7 +17,7 @@ uint8_t gprsBuffer[128];
 extern PARA para;
 // extern SYS_MODE sys_mode;
 
-GPRS_7G3 gprs_7g3;
+GPRS gprs;
 GPRS_STATE gprs_state;
 GPRS_RX_STATE gprs_rx_state;
 static uint8_t gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
@@ -170,12 +170,12 @@ void gprs_Exit_At_Mode(void){
 
     case GPRS_SEND_AT_ENTM:
         gprs_Clear_Rx_Buff();
-        HAL_UART_Transmit(&h_gprs, (uint8_t *)"at+entm\xd", 9, 0xffff);
+        HAL_UART_Transmit(&h_gprs, (uint8_t *)"AT+ENTM\r\n", 9, 0xffff);
         gprs_state = GPRS_WAITING_AT_ENTM;
         break;
 
     case GPRS_WAITING_AT_ENTM:
-        if(strstr((char *)gprsBuffer, "at+entm\r\000\r\nOK\r\n") == 0){
+        if(strstr((char *)gprsBuffer, "AT+ENTM") && strstr((char *)gprsBuffer, "OK")){
             RS485_Out(">> Exit AT COMMAND MODE!");
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_READY;
@@ -187,6 +187,41 @@ void gprs_Exit_At_Mode(void){
     }
 }
 
+void gprs_state_update(void){
+    if(HAL_GPIO_ReadPin(GPRS_WORK_GPIO_Port, GPRS_WORK_Pin) == GPIO_PIN_RESET){
+        gprs.work = GPRS_WORK_ON;
+        gprs.work_filter = GPRS_PINS_FILTER_MAX;
+    }else{
+        if(gprs.work_filter > 0){
+            gprs.work_filter--;
+        }else{
+            gprs.work = GPRS_WORK_OFF;
+        }
+    }
+
+    if(HAL_GPIO_ReadPin(GPRS_NET_GPIO_Port, GPRS_NET_Pin) == GPIO_PIN_RESET){
+        gprs.net = GPRS_NET_ON;
+        gprs.net_filter = GPRS_PINS_FILTER_MAX;
+    }else{
+        if(gprs.net_filter > 0){
+            gprs.net_filter--;
+        }else{
+            gprs.net = GPRS_NET_OFF;
+        }
+    }
+
+    if(HAL_GPIO_ReadPin(GPRS_LINKA_GPIO_Port, GPRS_LINKA_Pin) == GPIO_PIN_RESET 
+    || HAL_GPIO_ReadPin(GPRS_LINKB_GPIO_Port, GPRS_LINKB_Pin) == GPIO_PIN_RESET){
+        gprs.link = GPRS_LINK_ON;
+        gprs.link_filter = GPRS_PINS_FILTER_MAX;
+    }else{
+        if(gprs.link_filter > 0){
+            gprs.link_filter--;
+        }else{
+            gprs.link = GPRS_LINK_OFF;
+        }
+    }
+}
 
 void gprs_Ini(void){
     char *pStr;
@@ -196,9 +231,32 @@ void gprs_Ini(void){
     {
     case GPRS_INI:
         RS485_Out(">> GPRS INITIAL ...\r");
-        if (HAL_GPIO_ReadPin(GPRS_NET_GPIO_Port, GPRS_NET_Pin) == GPIO_PIN_RESET)
+        if ( gprs.work == GPRS_WORK_ON )
         {
+            gprs_state = GPRS_TYPE_CHECK;
+        }
+        break;
+
+    case GPRS_TYPE_CHECK:
+        RS485_Out(">> GPRS Type checking...");
+        gprs_Send("usr.cn#AT");
+        gprs_state = GPRS_TYPE_CHECK_WAIT;
+        break;
+
+    case GPRS_TYPE_CHECK_WAIT:
+        if(strstr((char *)gprsBuffer, "OK")){
+            RS485_Out(">> GPRS Type Check OK! 7g3");
+            gprs.type = TYPE_7G3;
             gprs_state = GPRS_READ_IMEI;
+        }
+        else if(strstr((char *)gprsBuffer, "+ERR:1")){
+            RS485_Out(">> GPRS Type Check OK! 7g4");
+            gprs.type = TYPE_7G4;
+            gprs_state = GPRS_READ_IMEI;
+        }
+        else {
+            RS485_Out(">> GPRS Type Check Fail!");
+            gprs.type = TYPE_NONE;
         }
         break;
     
@@ -207,7 +265,12 @@ void gprs_Ini(void){
         RS485_Out(">> Read IMEI ...\r");
         
         memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
-        gprs_Send("usr.cn#at+imei\r");
+        if(gprs.type == TYPE_7G3){
+            gprs_Send("usr.cn#at+imei\r");
+        }
+        else if(gprs.type == TYPE_7G4){
+            gprs_Send("usr.cnat+imei\r");
+        }
         gprs_state = GPRS_READ_IMEI_WAIT;
         break;
 
@@ -216,8 +279,8 @@ void gprs_Ini(void){
         if(pStr){
             gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
             RS485_Out(">> IMEI:");
-            memcpy(gprs_7g3.imei, pStr+6, 15);
-            RS485_Out(gprs_7g3.imei);
+            memcpy(gprs.imei, pStr+6, 15);
+            RS485_Out(gprs.imei);
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_GET_CSQ;
         }
@@ -228,7 +291,12 @@ void gprs_Ini(void){
 
     case GPRS_GET_CSQ:
         RS485_Out(">> GPRS Get CSQ ...");
-        gprs_Send("usr.cn#at+csq\r");
+        if(gprs.type == TYPE_7G3){
+            gprs_Send("usr.cn#at+csq\r");
+        }
+        else if(gprs.type == TYPE_7G4){
+            gprs_Send("usr.cnat+csq\r");
+        }
         gprs_state = GPRS_GET_CSQ_WAIT;
         break;
 
@@ -238,7 +306,7 @@ void gprs_Ini(void){
             
             gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
             memcpy(_buff, pStr+5,3);
-            gprs_7g3.csq = atoi(_buff);
+            gprs.csq = atoi(_buff);
 
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_GET_SERVER;
@@ -252,7 +320,13 @@ void gprs_Ini(void){
         // strcpy(_buff, "usr.cn#at+socka?");
 
         RS485_Out("usr.cn#at+socka?");
-        gprs_Send("usr.cn#at+socka?");
+        if (gprs.type == TYPE_7G3)
+        {
+            gprs_Send("usr.cn#at+socka?");
+        }
+        else if(gprs.type == TYPE_7G4){
+            gprs_Send("usr.cnat+socka?");
+        }
         gprs_state = GPRS_GET_SERVER_WAIT;
         break;
     
@@ -292,7 +366,13 @@ void gprs_Remote_Req(void){
 
     case GPRS_GET_CSQ:
         RS485_Out(">> GPRS Get CSQ ...");
-        gprs_Send("usr.cn#at+csq\r");
+        if (gprs.type == TYPE_7G3)
+        {
+            gprs_Send("usr.cn#at+csq\r");
+        }
+        else if(gprs.type == TYPE_7G4){
+            gprs_Send("usr.cnat+csq\r");
+        }
         gprs_state = GPRS_GET_CSQ_WAIT;
         break;
 
@@ -302,7 +382,7 @@ void gprs_Remote_Req(void){
             
             gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
             memcpy(_buff, pStr+5,3);
-            gprs_7g3.csq = atoi(_buff);
+            gprs.csq = atoi(_buff);
 
             memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
             gprs_state = GPRS_REMOTE_REQ;
@@ -314,7 +394,7 @@ void gprs_Remote_Req(void){
     case GPRS_REMOTE_REQ:
 
         memset(_buff, 0x00, sizeof(_buff));
-        sprintf(_buff, "{\"TYPE\":\"REQ\", \"IMEI\":\"%s\"}", gprs_7g3.imei);
+        sprintf(_buff, "{\"TYPE\":\"REQ\", \"IMEI\":\"%s\"}", gprs.imei);
         gprs_Send(_buff);
 
         RS485_Out(">> GPRS REMOTE SEND:");
@@ -338,7 +418,7 @@ void gprs_Remote_Req(void){
                     "\"D1\":%lu,"
                     "\"D2\":%lu,"
                     "\"D3\":%lu}",
-                    gprs_7g3.imei, 
+                    gprs.imei, 
                     para.ch[CH1],
                     para.ch[CH2],
                     para.ch[CH3],
@@ -429,8 +509,14 @@ void gprs_Module_Timeout(void)
         gprs_remote_timer = GPRS_REMOTE_TIMEOUT_MAX;
         memset(gprsBuffer, 0x00, sizeof(gprsBuffer));
 
-        // reset gprs_7s3 module
-        gprs_Send("usr.cn#at+z\r");
+        // reset gprs_7sx module
+        if (gprs.type == TYPE_7G3)
+        {
+            gprs_Send("usr.cn#at+z\r");
+        }
+        else if(gprs.type == TYPE_7G4){
+            gprs_Send("usr.cnat+z\r");
+        }
         
         gprs_state = GPRS_READY;
     }
@@ -445,27 +531,37 @@ void gprs_Factory_Setting(void){
     {
     case GPRS_FACTORY_SETTING: 
         RS485_Out(">> GPRS FACTORY SETTING...\r");
-        gprs_state = GPRS_SET_UATEN;
+        if (gprs.type == TYPE_7G4){
+            gprs_state = GPRS_SET_HEARTEN_OFF;
+        }else if(gprs.type == TYPE_7G3){
+            gprs_state = GPRS_SET_UATEN;
+        }
         break;
 
     case GPRS_SET_UATEN:
         RS485_Out(">> GPRS SET UARTEN\r");
-        gprs_Send("at+uaten=\"on\"");
+        if(gprs.type == TYPE_7G3){
+            gprs_Send("at+uaten=\"on\"");
+        }
         gprs_state = GPRS_SET_UATEN_WAIT;
         break;
     case GPRS_SET_UATEN_WAIT:
-        if(strstr((char *)gprsBuffer, "at+uaten=\"on\"\r\r\nOK")){
+        if(strstr((char *)gprsBuffer, "at+uaten") && strstr((char *)gprsBuffer, "OK")){
             RS485_Out(">> GPRS SET UARTEN OK!");
             gprs_state = GPRS_SET_HEARTEN_OFF;
         }
         break;
     case GPRS_SET_HEARTEN_OFF:
         RS485_Out(">> GPRS SET HEARTEN OFF...");
-        gprs_Send("at+hearten=\"off\"");
+        if(gprs.type == TYPE_7G3){
+            gprs_Send("at+hearten=\"off\"");
+        }else if (gprs.type == TYPE_7G4){
+            gprs_Send("at+hearten=OFF");
+        }
         gprs_state = GPRS_SET_HEARTEN_OFF_WAIT;
         break;
     case GPRS_SET_HEARTEN_OFF_WAIT:
-        if(strstr((char *)gprsBuffer, "at+hearten=\"off\"\r\r\nOK"))
+        if(strstr((char *)gprsBuffer, "at+hearten") && strstr((char *)gprsBuffer, "OK"))
         {
             RS485_Out(">> GPRS SET HEARTEN OFF OK!");
             gprs_state = GPRS_SET_SERVER;
@@ -474,12 +570,18 @@ void gprs_Factory_Setting(void){
 
     case GPRS_SET_SERVER:
         RS485_Out(">> GPRS SET SERVER:\r");
-        gprs_Send("at+socka=\"TCP\",\"121.199.16.44\",6969");
+        if(gprs.type == TYPE_7G3){
+
+            gprs_Send("at+socka=\"TCP\",\"121.199.16.44\",6969");
+        }else if (gprs.type == TYPE_7G4){
+
+            gprs_Send("at+socka=TCP,121.199.16.44,6969");
+        }
         gprs_state = GPRS_SET_SERVER_WAIT;
         break;
     
     case GPRS_SET_SERVER_WAIT:
-        if(strstr((char *)gprsBuffer, "at+socka=\"TCP\",\"121.199.16.44\",6969\r\r\nOK")){
+        if(strstr((char *)gprsBuffer, "at+socka") && strstr((char *)gprsBuffer, "OK")){
             RS485_Out(">> GPRS SET SERVER OK!\r");
             gprs_state = GPRS_FACTORY_SETTING_OK;
         }
@@ -488,7 +590,11 @@ void gprs_Factory_Setting(void){
 
     case GPRS_FACTORY_SETTING_OK:
         RS485_Out(">> GPRS FACTORY SETTING OK!\r");
-        gprs_Send("at+s\r");
+        if(gprs.type == TYPE_7G3){
+            gprs_Send("AT+S");
+        }else if (gprs.type == TYPE_7G4){
+            gprs_Send("AT+Z");
+        }
         gprs_state = GPRS_READY;
         break;
     

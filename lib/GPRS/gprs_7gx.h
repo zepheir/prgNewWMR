@@ -4,6 +4,7 @@
 #include "main.h"
 
 #define h_gprs huart2
+#define GPRS_PINS_FILTER_MAX    50 // 5000ms
 #define GPRS_REMOTE_TIMEOUT_MAX 60
 #define TCP_SERVER	"121.199.16.44"
 #define TCP_PORT		"6969"
@@ -16,6 +17,8 @@ typedef enum{
 
 typedef enum {
     GPRS_INI,
+    GPRS_TYPE_CHECK,
+    GPRS_TYPE_CHECK_WAIT,
     GPRS_READ_IMEI,
     GPRS_READ_IMEI_WAIT,
     GPRS_GET_CSQ,
@@ -52,7 +55,27 @@ typedef struct
 {
   char imei[15];
   int16_t csq; // 信号强度
-} GPRS_7G3;
+  enum {
+    TYPE_NONE,
+    TYPE_7G3,
+    TYPE_7G4
+  } type;
+  enum {
+    GPRS_WORK_OFF,
+    GPRS_WORK_ON
+  } work;
+  uint8_t work_filter;
+  enum {
+    GPRS_NET_OFF,
+    GPRS_NET_ON
+  } net;
+  uint8_t net_filter;
+  enum {
+    GPRS_LINK_OFF,
+    GPRS_LINK_ON
+  } link;
+  uint8_t link_filter;
+} GPRS;
 
 
 #define GPRS_RESP_TIMER_MAX 5 // 500ms
@@ -66,6 +89,7 @@ void gprs_Enter_Setting(void);
 void gprs_Exit_At_Mode(void);
 
 void gprs_Ini(void);
+void gprs_state_update(void);
 void gprs_Remote_Req(void);
 
 void gprs_Factory_Setting(void);

@@ -29,7 +29,7 @@
 #include "func.h"
 #include "para.h"
 #include "rs485.h"
-#include "gprs_7g3.h"
+#include "gprs_7gx.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

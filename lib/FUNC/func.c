@@ -2,7 +2,7 @@
 #include "main.h"
 #include "usart.h"
 #include "rs485.h"
-#include "gprs_7g3.h"
+#include "gprs_7gx.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -61,6 +61,10 @@ uint8_t get_flash_offset_address(void);
  * 
  */
 void Update_State(void){
+
+
+    gprs_state_update();    
+
 
     // if(sys_mode != SYS_MODE_REMOTE && sys_mode != SYS_MODE_INI){
     //     // sys_mode = SystemModeSelect();

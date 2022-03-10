@@ -1,5 +1,5 @@
 #include "rs485.h"
-#include "gprs_7g3.h"
+#include "gprs_7gx.h"
 #include "func.h"
 #include "para.h"
 #include "usart.h"
