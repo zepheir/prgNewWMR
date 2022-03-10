@@ -14,6 +14,7 @@ typedef enum{
 
 void RS485_Receiver(void);
 void RS485_Receiver_TimeoutMode(void);
-void RS485_Out(uint8_t str[], uint8_t size);
+// void RS485_Out(uint8_t str[], uint8_t size);
+void RS485_Out(char *pStr);
 
 #endif // __RS485_H__

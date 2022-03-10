@@ -1,5 +1,6 @@
 #include "para.h"
 #include "func.h"
+#include "gprs_7gx.h"
 
 // 参数定义
 
@@ -8,6 +9,7 @@ extern PARA para;
 extern FILTER filter;
 extern uint8_t pwr_check_filter;
 extern SYS_MODE sys_mode;
+extern GPRS gprs;
 
 void Para_Init(void)
 {
@@ -19,11 +21,18 @@ void Para_Init(void)
     filter.data.ch4 = FILTER_MAX;
     pwr_check_filter = FILTER_MAX;
 
+    gprs.work_filter = GPRS_PINS_FILTER_MAX;
+    gprs.link_filter = GPRS_PINS_FILTER_MAX;
+    gprs.net_filter = GPRS_PINS_FILTER_MAX;
+    gprs.work = GPRS_WORK_OFF;
+    gprs.net  = GPRS_NET_OFF;
+    gprs.link = GPRS_LINK_OFF;
+
     // HAL_FLASH_Unlock();
     // UserErase();
     // HAL_FLASH_Lock();
 
-    if (sys_mode == SYS_MODE_FACTORY_LOAD || *(__IO uint32_t *)(_addr + 0x1c) == 0xffffffff)
+    if (*(__IO uint32_t *)(_addr + 0x1c) == 0xffffffff)
     {
         Para_Factory();
     }

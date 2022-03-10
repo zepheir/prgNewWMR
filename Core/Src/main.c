@@ -29,7 +29,7 @@
 #include "func.h"
 #include "para.h"
 #include "rs485.h"
-#include "gprs_7g3.h"
+#include "gprs_7gx.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,7 +110,8 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  sys_mode = SystemModeSelect();
+  // sys_mode = SystemModeSelect();
+  sys_mode = SYS_MODE_INI;
 
   Para_Init();
 
@@ -204,44 +205,44 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (pwr_check_state == READY)
     {
       pwr_check_state = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "PWR_TRIGGED\r", 12, 0xffff);
       UserWrite();
+      HAL_UART_Transmit(&h_rs485, (uint8_t *)"PWR_TRIGGED\r", 12, 0xffff);
       // exit_trig_state = PWR_TRIGGED;
     }
   }
-  else if (GPIO_Pin == DI_1_Pin)
+  else if (GPIO_Pin == DI_3_Pin)
   {
 
     if (ch_state[CH1] == READY)
     {
       ch_state[CH1] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI1_TRIGGED\r", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, (uint8_t *)"DI1_TRIGGED\r", 12, 0xffff);
     }
     // exit_trig_state = DI1_TRIGGED;
   }
-  else if (GPIO_Pin == DI_2_Pin)
+  else if (GPIO_Pin == DI_4_Pin)
   {
     if (ch_state[CH2] == READY)
     {
       ch_state[CH2] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI2_TRIGGED\r", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, (uint8_t *)"DI2_TRIGGED\r", 12, 0xffff);
     }
     // exit_trig_state = DI2_TRIGGED;
   }
-  else if (GPIO_Pin == DI_3_Pin)
+  else if (GPIO_Pin == DI_1_Pin)
   {
     if (ch_state[CH3] == READY)
     {
       ch_state[CH3] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI3_TRIGGED\r", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, (uint8_t *)"DI3_TRIGGED\r", 12, 0xffff);
     }
   }
-  else if (GPIO_Pin == DI_4_Pin)
+  else if (GPIO_Pin == DI_2_Pin)
   {
     if (ch_state[CH4] == READY)
     {
       ch_state[CH4] = TRIGGED;
-      HAL_UART_Transmit(&h_rs485, "DI4_TRIGGED\r", 12, 0xffff);
+      HAL_UART_Transmit(&h_rs485, (uint8_t *)"DI4_TRIGGED\r", 12, 0xffff);
     }
   }
 }
